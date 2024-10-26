@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <!-- Theme Made By www.w3schools.com - No Copyright -->
+  <title>Bad Cover</title>
+  <meta name="description" content="Bad Cover, music band, rock, pop." />
+  <meta name="keywords" content="Bad Cover, music band, rock, pop." />
+  <link rel="icon" type="image/x-icon" href="assets/img/badcoverlogo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <style>
+  /*body {
+    font: 400 15px/1.8 Lato, sans-serif;
+    color: #777;
+  }*/
+  body a {
+    color: #f5f5f5;
+    text-decoration: none;
+  }
+  body a:hover {
+    color: #777;
+    text-decoration: none;
+  }
+  /*
+  h3, h4 {
+    margin: 10px 0 30px 0;
+    letter-spacing: 10px;      
+    font-size: 20px;
+    color: #111;
+  }
+  */
+  .container {
+    padding: 80px 120px;
+  }
+  /*
+  .person {
+    border: 10px solid transparent;
+    margin-bottom: 25px;
+    width: 80%;
+    height: 80%;
+    opacity: 0.7;
+  }
+  .person:hover {
+    border-color: #f1f1f1;
+  }
+  */
+  .carousel-inner img {
+    /*-webkit-filter: grayscale(90%);*/
+    /*filter: grayscale(90%);*/ /* make all photos black and white */ 
+    width: 100%; /* Set width to 100% */
+    margin: auto;
+  }
+  .carousel-caption h3 {
+    color: #fff !important;
+  }
+  @media (max-width: 600px) {
+    .carousel-caption {
+      display: none; /* Hide the carousel text when the screen is less than 600 pixels wide */
+    }
+  }
+  .bg-1 {
+    #background: #2d2d30;
+    background: black;
+    color: #bdbdbd;
+  }
+  .bg-1 h3 {color: #fff;}
+  .bg-1 p {font-style: italic;}
+  /*
+  .list-group-item:first-child {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+  }
+  .list-group-item:last-child {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .thumbnail {
+    padding: 0 0 15px 0;
+    border: none;
+    border-radius: 0;
+  }
+  .thumbnail p {
+    margin-top: 15px;
+    color: #555;
+  }
+  */
+  .btn {
+    padding: 10px 20px;
+    background-color: #333;
+    color: #f1f1f1;
+    border-radius: 0;
+    transition: .2s;
+  }
+  .btn:hover, .btn:focus {
+    border: 1px solid #333;
+    background-color: #fff;
+    color: #000;
+  }
+  /*
+  .modal-header, h4, .close {
+    background-color: #333;
+    color: #fff !important;
+    text-align: center;
+    font-size: 30px;
+  }
+  .modal-header, .modal-body {
+    padding: 40px 50px;
+  }
+  */
+  .nav-tabs li a {
+    color: #777;
+  }
+  
+  .navbar {
+    font-family: Montserrat, sans-serif;
+    margin-bottom: 0;
+    /*background-color: #2d2d30;*/
+    background-color: black;
+    border: 0;
+    font-size: 11px !important;
+    letter-spacing: 4px;
+    opacity: 0.9;
+  }
+  .navbar li a, .navbar .navbar-brand { 
+    color: #d5d5d5 !important;
+  }
+  .navbar-nav li a:hover {
+    color: #fff !important;
+  }
+  .navbar-nav li.active a {
+    color: #fff !important;
+    background-color: #29292c !important;
+  }
+  .navbar-default .navbar-toggle {
+    border-color: transparent;
+  }
+  .open .dropdown-toggle {
+    color: #fff;
+    background-color: #555 !important;
+  }
+  .dropdown-menu li a {
+    color: #000 !important;
+  }
+  .dropdown-menu li a:hover {
+    background-color: red !important;
+  }
+  /*
+  footer {
+    background-color: #2d2d30;
+    color: #f5f5f5;
+    padding: 32px;
+  }
+  footer a {
+    color: #f5f5f5;
+  }
+  footer a:hover {
+    color: #777;
+    text-decoration: none;
+  }  
+  .form-control {
+    border-radius: 0;
+  }
+  textarea {
+    resize: none;
+  }
+  */
+  footer a {
+    color: #f5f5f5;
+  }
+  footer a:hover {
+    color: #777;
+    text-decoration: none;
+  }  
+  </style>
+</head>
+
+<body id="myPage" data-spy="scroll" data-target=".navbar" data-offset="50" class="bg-1">
+
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+      <a class="navbar-brand" href="#myPage">Bad Cover</a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav navbar-right">
+        <!--<li><a href="#myPage">HOME</a></li>-->
+        <li><a href="#band">BAND</a></li>
+        <li><a href="#video">VIDEO</a></li>
+        <li><a href="#songs">SONGS</a></li>
+        <!--<li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">MORE
+          <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Merchandise</a></li>
+            <li><a href="#">Extras</a></li>
+            <li><a href="#">Media</a></li> 
+          </ul>
+        </li>
+        <li><a href="#"><span class="glyphicon glyphicon-search"></span></a></li>-->
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ---------------------------- -->
+<!-- carousel                     -->
+<!-- ---------------------------- -->
+
+<div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <!-- Indicators -->
+    <ol class="carousel-indicators">
+      <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+      <li data-target="#myCarousel" data-slide-to="1"></li>
+      <li data-target="#myCarousel" data-slide-to="2"></li>
+    </ol>
+
+    <!-- Wrapper for slides -->
+    <div class="carousel-inner" role="listbox">
+      
+
+      <div class="item active">
+        <img src="assets/img/uref_19_10_2024/carousel1.jpg" alt="New York" width="1200" height="700">
+        <div class="carousel-caption">
+          <h3>ROCKTOBER FEST</h3>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>      
+      </div>
+
+      <div class="item">
+        <img src="assets/img/uref_19_10_2024/carousel2.jpg" alt="Chicago" width="1200" height="700">
+        <div class="carousel-caption">
+          <h3>ROCKTOBER FEST</h3>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>      
+      </div>
+    
+      <div class="item">
+        <img src="assets/img/uref_19_10_2024/carousel5.jpg" alt="Los Angeles" width="1200" height="700">
+        <div class="carousel-caption">
+          <h3>ROCKTOBER FEST</h3>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>      
+      </div>
+
+      <div class="item">
+        <img src="assets/img/uref_19_10_2024/carousel6.jpg" alt="Los Angeles" width="1200" height="700">
+        <div class="carousel-caption">
+          <h3>ROCKTOBER FEST</h3>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>      
+      </div>
+
+      <div class="item">
+        <img src="assets/img/uref_19_10_2024/carousel7.jpg" alt="Los Angeles" width="1200" height="700">
+        <div class="carousel-caption">
+          <h3>ROCKTOBER FEST</h3>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>      
+      </div>
+
+      <div class="item">
+        <img src="assets/img/uref_19_10_2024/carousel9.jpg" alt="Los Angeles" width="1200" height="700">
+        <div class="carousel-caption">
+          <h3>ROCKTOBER FEST</h3>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>      
+      </div>
+
+
+    </div>
+
+    <!-- Left and right controls -->
+    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+      <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+      <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+      <span class="sr-only">Next</span>
+    </a>
+</div>
+
+<!-- ---------------------------- -->
+<!-- ---------------------------- -->
+<!-- ---------------------------- -->
+
+<!-- Container (The Band Section) -->
+<div id="band" class="container text-center " >
+  <h3>Bad Cover</h3>
+  <!--<p><em>We love music!</em></p>-->
+  <p>
+    Bad Cover és una banda de música de Sant Cugat del Vallès, Barcelona, fundada el 2019.  Actualment la banda està formada per Cristina (veu, kazoo, pandereta), Sergio (guitarra acústica, guitarra elèctrica, veu), David (teclats), Ivan (baix), Ferran (bateria) i Rubèn (guitarra elèctrica). Se'ns pot contactar via mail a <a href="mailto: badcover2023@gmail.com">badcover2023@gmail.com</a>  o a través de The Wall Records (936 74 95 98, <a href="mailto: info@thewallrecords.com">info@thewallrecords.com</a>).
+  </p>
+</div>
+
+
+  <!-- ---------------------------- -->
+    <!-- --   BAND MEMBERS   -------- -->
+    <!-- ---------------------------- -->
+    <div class="album py-5">
+        <div class="container">
+            <!-- ********** row ********** -->
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/uref_19_10_2024/ivan.jpg">
+                        <div class="card-body">
+                            <center><p class="card-text" >Ivan<br></p></center>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/uref_19_10_2024/david.jpg">
+                        <div class="card-body">
+                            <center><p class="card-text" >David<br></p></center>           
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/uref_19_10_2024/sergio.jpg">
+                        <div class="card-body">
+                            <center><p class="card-text" >Sergio<br></p></center>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="col-md-2">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/uref_19_10_2024/ruben.jpg">
+                        <div class="card-body">
+                           <center><p class="card-text" >Rubèn<br></p></center>      
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/uref_19_10_2024/cristina.jpg">
+                        <div class="card-body">
+                            <center><p class="card-text" >Cristina<br></p></center>   
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/uref_19_10_2024/ferran.jpg">
+                        <div class="card-body">
+                            <center><p class="card-text" >Ferran<br></p></center>
+                                                   
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <!-- ---------------------------- -->
+    <!-- --   END BAND MEMBERS   ---- -->
+    <!-- ---------------------------- -->
+
+    <!-- ---------------------------- -->
+    <!-- -------   VIDEO   ---------- -->
+    <!-- ---------------------------- -->
+
+    <div id="video" class="container">
+      <div class="row">
+        <div class="col">
+          <div class="embed-responsive embed-responsive-16by9">
+            <video class="embed-responsive-item" controls>
+            <source src="assets/img/uref_19_10_2024/je_veux_uref_19_10_2024.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          </div>
+        </div>
+
+        <div class="col">
+          <h5>ROCKTOBER FEST</h5>
+          <p>Sala UREF, La Floresta, 19/10/2024</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------------------- -->
+    <!-- -------   END VIDEO   ------ -->
+    <!-- ---------------------------- -->
+
+  <!-- ---------------------------- -->
+    <!-- -------   SONGS   ---------- -->
+    <!-- ---------------------------- -->
+    <div id="songs" class="album py-5">
+        <div class="container">
+            <!-- ********** row ********** -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/portades/jeveux.jpg">
+                        <div class="card-body">
+                            <p class="card-text">Je veux (ZAZ)<br></p>
+                            <audio controls autoplay>
+                              <source src="assets/audio/je_veux.mp3" type="audio/mpeg">
+                            
+                            </audio>                           
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/portades/freedom.jpg">
+                        <div class="card-body">
+                            <p class="card-text">Freedom (Anthony Hamilton and Elayna Boynton)<br></p>
+                            <audio controls autoplay>
+                              <source src="assets/audio/freedom.mp3" type="audio/mpeg">
+                            
+                            </audio>                           
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/portades/crazy.jpg">
+                        <div class="card-body">
+                            <p class="card-text">Crazy (Gnarls Barkley)<br></p>
+                            <audio controls autoplay>
+                              <source src="assets/audio/crazy.mp3" type="audio/mpeg">
+                            
+                            </audio>                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ********** row ********** -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/portades/dorian.jpg">
+                        <div class="card-body">
+                            <p class="card-text">Cualquier otra parte (Dorian)<br></p>
+                            <audio controls autoplay>
+                              <source src="assets/audio/dorian.mp3" type="audio/mpeg">
+                            
+                            </audio>                           
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/portades/ronaldos.jpg">
+                        <div class="card-body">
+                            <p class="card-text">No puedo vivir sin ti (Los Ronaldos)<br></p>
+                            <audio controls autoplay>
+                              <source src="assets/audio/ronaldos.mp3" type="audio/mpeg">
+                            
+                            </audio>                           
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4 shadow-sm"><img class="bd-placeholder-img" width="100%" height="100%" src="assets/img/badcoverlogo.jpg">
+                        <div class="card-body">
+                            <p class="card-text">La Oficina (Bad Cover)<br></p>
+                            <audio controls autoplay>
+                              <source src="assets/audio/laoficina.mp3" type="audio/mpeg">
+                            
+                            </audio>                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ---------------------------- -->
+    <!-- -------   END SONGS   ------ -->
+    <!-- ---------------------------- -->
+
+
+<!-- Footer -->
+<footer class="text-center bg-1">
+      <div class="container">
+          <!--<p class="float-right"><a href="#">Back To Top</a></p>-->
+          <p>Contact: <a href="mailto: badcover2023@gmail.com">badcover2023@gmail.com</a></p>
+  </div>
+    <div class="text-center"><a href="https://rtous.github.io/badcover/"><img alt="Bad Cover"  src="assets/img/badcoverlogo.png" height="100"/></div>
+  <!--<div class="text-center"><a href="http://winwin-project.net/"><img alt="winwin-project"  src="assets/img/winwin_small.png" height="100"/></div>-->
+
+  </footer>
+
+<script>
+$(document).ready(function(){
+  // Initialize Tooltip
+  $('[data-toggle="tooltip"]').tooltip(); 
+  
+  // Add smooth scrolling to all links in navbar + footer link
+  $(".navbar a, footer a[href='#myPage']").on('click', function(event) {
+
+    // Make sure this.hash has a value before overriding default behavior
+    if (this.hash !== "") {
+
+      // Prevent default anchor click behavior
+      event.preventDefault();
+
+      // Store hash
+      var hash = this.hash;
+
+      // Using jQuery's animate() method to add smooth page scroll
+      // The optional number (900) specifies the number of milliseconds it takes to scroll to the specified area
+      $('html, body').animate({
+        scrollTop: $(hash).offset().top
+      }, 900, function(){
+   
+        // Add hash (#) to URL when done scrolling (default click behavior)
+        window.location.hash = hash;
+      });
+    } // End if
+  });
+})
+</script>
+
+</body>
+</html>
