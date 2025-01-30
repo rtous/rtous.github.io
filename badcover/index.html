@@ -5,11 +5,18 @@
   <title>Bad Cover</title>
   <meta name="description" content="Bad Cover, music band, rock, pop." />
   <meta name="keywords" content="Bad Cover, music band, rock, pop." />
+  <!-- small browser icon -->
   <link rel="icon" type="image/x-icon" href="assets/img/badcoverlogo.png">
+  
+  <!-- whatsapp image when you share the page link -->
   <meta property="og:type" content="website" />
   <meta property="og:image" itemprop="image" content="https://rtous.github.io/badcover/assets/img/whatsapp.jpg" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Bootstrap stuff -->
+  <!-- Tried with version 5 but the Carousel stop working properly -->
+  <!-- NOTE: In the grids col-xs-4 should change to col-4 if version changes -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
@@ -227,7 +234,7 @@
 </nav>
 
 <!-- ---------------------------- -->
-<!-- carousel                     -->
+<!-- ------   CAROUSEL----------- -->
 <!-- ---------------------------- -->
 
 <div id="myCarousel" class="carousel slide" data-ride="carousel" style='padding-top:30px'>
@@ -305,10 +312,12 @@
 </div>
 
 <!-- ---------------------------- -->
-<!-- ---------------------------- -->
+<!-- ---  END CAROUSEL----------- -->
 <!-- ---------------------------- -->
 
-<!-- Container (The Band Section) -->
+<!-- ---------------------------- -->
+<!-- ---   BAND DESCRIPTION  ---- -->
+<!-- ---------------------------- -->
 <div id="band" class="container text-center " >
   <h3>Bad Cover</h3>
   <!--<br>-->
@@ -318,11 +327,21 @@
   </p>
 </div>
 
+<!-- ---------------------------- -->
+<!-- ---   END BAND DESCRIPTION  ---- -->
+<!-- ---------------------------- -->
 
 
     <!-- ---------------------------- -->
     <!-- --   BAND MEMBERS   -------- -->
     <!-- ---------------------------- -->
+    <!-- NOTE: This is a bootstrap grid -->
+
+    <!-- A row is made of 12 "units"    -->
+    <!-- col-md-2 = if display has medium size then 2 units per col, 12/2 = 6 columns -->
+    <!-- md = tablet, lg and xl = laptop, xs = mobile (just col i the last version) -->
+    <!-- https://www.w3schools.com/bootstrap4/bootstrap_grid_system.asp -->
+    <!-- IMPORTANT: Don't specify rows! bootstrap will decide where to put the rows -->
     <div class="album py-5">
         <div class="container">
             <!-- ********** row ********** -->
