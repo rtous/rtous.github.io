@@ -1,0 +1,153 @@
+/****************/
+/* SITE HEADER */
+/****************/
+
+.site-title {
+	color: black;
+	line-height: 28px;
+	display: inline;
+	font-family: 'Passion One', sans-serif;
+	font-size: 32px;
+	text-transform: uppercase;
+}
+
+.news-bar-title {
+	color: white;
+	line-height: 28px;
+	vertical-align:middle;
+	display: inline;
+	font-family: 'Graduate', sans-serif;
+	font-size: 18px;
+	text-transform: uppercase;
+}
+
+.news-bar-content {
+	text-decoration:none;
+	vertical-align:middle;
+	color: white;
+	font-family: 'Oswald', sans-serif;
+	line-height: 28px;
+	font-size: 12px;
+}
+
+.banner-title {
+	color: white;
+	line-height: 28px;
+	display: inline;
+	font-family: 'Oswald Bold', sans-serif;
+	font-size: 28px;
+	text-transform: uppercase;
+}
+.banner-subtitle {
+	color: white;
+	font-size: 16px;
+	margin-bottom: .1em;
+	font-weight: 700;
+	padding-top: 7px;
+	font-family: 'Oswald Light', sans-serif;
+	text-transform: none;
+}
+
+/****************/
+/* MENU */
+/****************/
+
+
+.menu-title {
+color: black;
+line-height: 28px;
+display: inline;
+font-family: 'Graduate', sans-serif;
+font-size: 18px;
+text-transform: uppercase;
+}
+
+ul.menu {
+list-style-type: none;
+padding: 0;
+margin: 0 0 10px 0;
+}
+
+li.menu {
+list-style-type: none;
+margin: 10px 0 0px 0;
+/*padding: 0 0 0 0;*/
+font-size: 16px;
+font-family: 'Oswald Light', sans-serif;
+font-style: normal;
+  font-weight: 300;
+/*display: list-item;
+text-align: -webkit-match-parent;
+color: #666;*/
+}
+
+/****************/
+/* GENERAL TEXT */
+/****************/
+body
+{    
+	font: normal 13px/21px Arial, Helvetica, sans-serif;
+	color: #666;	
+    line-height: 18px;
+    text-align: left;    
+}
+
+/* ----- Links ---- */
+a {text-decoration: underline; color: #666666;}
+a:hover { color: #0063ff; }
+
+p
+{
+	text-align: justify;
+}
+
+img.photo {
+	float: left;
+	margin: 10px;
+}
+
+/* ----- Headers and subheaders ---- */
+h1 {	
+	
+	color: #292929;
+	font-size: 16px;
+	margin-bottom: .1em;
+	font-weight: 700;
+	padding-top: 7px;
+	font-family: 'Oswald Bold', sans-serif;
+	text-transform: none;
+}
+
+h2 {	
+	
+	color: #292929;
+	font-size: 14px;
+	margin-bottom: .1em;
+	font-weight: 700;
+	padding-top: 7px;
+	font-family: 'Oswald Light', sans-serif;
+	text-transform: none;
+}
+
+.subtitle {
+	padding: .4em 0 0 0;
+	font-size: 12px;
+	font-style: italic;
+	color: #343434;
+}
+
+/* ----- Lists ---- */
+li{
+	/*text-align: justify;*/
+	margin: 0 0 10px 0;
+}
+
+
+
+/* ------------------------- */
+/* --- Tables          --- */
+/* ------------------------- */
+table {
+    border-collapse:collapse;
+}
+

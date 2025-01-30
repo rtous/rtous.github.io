@@ -1,0 +1,33 @@
+@font-face {
+  font-family: 'Graduate';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Graduate'), local('Graduate-Regular'), url(Graduate.woff) format('woff');
+}
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Anton'), url(Anton.woff) format('woff');
+}
+@font-face {
+  font-family: 'Oswald Bold';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Oswald Bold'), local('Oswald-Bold'), url(Oswald.woff) format('woff');
+}
+@font-face {
+  font-family: 'Oswald Light';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Oswald Light'), local('Oswald-Light'), url(Oswald_light.woff) format('woff');
+}
+@font-face {
+  font-family: 'Oswald Regular';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Oswald Regular'), local('Oswald-Regular'), url(Oswald-regular.woff) format('woff');
+}
+
+
+
