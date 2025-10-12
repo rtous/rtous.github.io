@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        #mainButton {
+            width: 80vw;
+            max-width: 400px;
+            height: 80vw;
+            max-height: 400px;
+            border-radius: 50%;
+            border: none;
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(145deg, #5a67d8, #4c51bf);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #mainButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        #mainButton:active {
+            transform: scale(0.98);
+        }
+
+        #mainButton.playing {
+            background: linear-gradient(145deg, #f56565, #e53e3e);
+        }
+
+        #timer {
+            margin-top: 40px;
+            font-size: clamp(32px, 8vw, 64px);
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 480px) {
+            #mainButton {
+                width: 70vw;
+                height: 70vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="mainButton">START</button>
+    <div id="timer"></div>
+
+    <script>
+        let audioContext;
+        let oscillator;
+        let gainNode;
+        let isPlaying = false;
+        let startTime;
+        let elapsedTime = 0;
+
+        const button = document.getElementById('mainButton');
+        const timer = document.getElementById('timer');
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function startSound() {
+            initAudio();
+            
+            oscillator = audioContext.createOscillator();
+            gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start();
+        }
+
+        function stopSound() {
+            if (oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+                oscillator = null;
+            }
+            if (gainNode) {
+                gainNode.disconnect();
+                gainNode = null;
+            }
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = Math.floor((ms % 1000) / 10);
+            
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+        }
+
+        button.addEventListener('click', function() {
+            if (!isPlaying) {
+                startSound();
+                startTime = Date.now() - elapsedTime;
+                isPlaying = true;
+                button.textContent = 'STOP';
+                button.classList.add('playing');
+                timer.textContent = '';
+            } else {
+                stopSound();
+                elapsedTime = Date.now() - startTime;
+                isPlaying = false;
+                button.textContent = 'START';
+                button.classList.remove('playing');
+                timer.textContent = formatTime(elapsedTime);
+            }
+        });
+    </script>
+</body>
+</html>
