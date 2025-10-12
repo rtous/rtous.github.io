@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cronòmetre amb un botó</title>
+  <style>
+    html,body {
+      height:100%;
+      margin:0;
+      font-family:system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background: radial-gradient(circle at center, #a8edea 0%, #fed6e3 100%);
+    }
+    .wrap {
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:20px;
+    }
+    button#timerBtn {
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      border:none;
+      background:linear-gradient(135deg, #89f7fe, #66a6ff);
+      color:white;
+      font-size:20px;
+      font-weight:bold;
+      cursor:pointer;
+      box-shadow:0 8px 20px rgba(0,0,0,0.2);
+      transition:transform 0.2s, background 0.3s, box-shadow 0.3s;
+    }
+    button#timerBtn:active {
+      transform:scale(0.95);
+    }
+    button#timerBtn.running {
+      background:linear-gradient(135deg, #ff758c, #ff7eb3);
+      box-shadow:0 0 25px rgba(255,118,150,0.6);
+    }
+    #result {
+      font-size:18px;
+      color:#333;
+      min-height:1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <button id="timerBtn" aria-live="polite">Comença</button>
+    <div id="result" aria-atomic="true" aria-live="polite" hidden></div>
+  </div>
+
+  <script>
+    (function(){
+      const btn = document.getElementById('timerBtn');
+      const result = document.getElementById('result');
+
+      // Crear oscilador per Web Audio API
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      let oscillator = null;
+      let running = false;
+      let startTime = null;
+      let lastElapsed = null;
+
+      function formatMs(ms){
+        const totalMs = Math.round(ms);
+        const minutes = Math.floor(totalMs / 60000);
+        const seconds = Math.floor((totalMs % 60000) / 1000);
+        const milliseconds = totalMs % 1000;
+        return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}.${String(milliseconds).padStart(3,'0')}`;
+      }
+
+      function startSound(){
+        oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 440;
+        gainNode.gain.value = 0.3; // volum moderat
+        oscillator.connect(gainNode).connect(audioCtx.destination);
+        oscillator.start();
+      }
+
+      function stopSound(){
+        if(oscillator){
+          oscillator.stop();
+          oscillator.disconnect();
+          oscillator = null;
+        }
+      }
+
+      btn.addEventListener('click', ()=>{
+        if(!running && startTime === null){
+          startTime = performance.now();
+          running = true;
+          result.hidden = true;
+          result.textContent = '';
+          btn.textContent = 'Atura';
+          btn.classList.add('running');
+          if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+          startSound();
+        } else if(running){
+          const ended = performance.now();
+          lastElapsed = ended - startTime;
+          running = false;
+          startTime = null;
+          result.textContent = `Temps: ${formatMs(lastElapsed)}`;
+          result.hidden = false;
+          btn.textContent = 'Reinicia';
+          btn.classList.remove('running');
+          stopSound();
+        } else {
+          lastElapsed = null;
+          result.hidden = true;
+          startTime = performance.now();
+          running = true;
+          btn.textContent = 'Atura';
+          btn.classList.add('running');
+          if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+          startSound();
+        }
+      });
+
+      btn.addEventListener('keyup', (e)=>{
+        if(e.code === 'Space' || e.code === 'Enter') btn.click();
+      });
+
+    })();
+  </script>
+</body>
+</html>
