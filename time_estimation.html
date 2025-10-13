@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporitzador de So</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type="number"] {
+            width: 200px;
+            padding: 15px;
+            font-size: 24px;
+            text-align: center;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #mainButton {
+            width: 80vw;
+            max-width: 300px;
+            height: 80vw;
+            max-height: 300px;
+            border-radius: 50%;
+            border: none;
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(145deg, #5a67d8, #4c51bf);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #mainButton:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        #mainButton:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        #mainButton.playing {
+            background: linear-gradient(145deg, #f56565, #e53e3e);
+        }
+
+        #mainButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #countdown {
+            font-size: clamp(32px, 8vw, 64px);
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #progressBar {
+            width: 80vw;
+            max-width: 400px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #progressFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.1s linear;
+        }
+
+        @media (max-width: 480px) {
+            #mainButton {
+                width: 60vw;
+                height: 60vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-group">
+            <label for="duration">Durada (segons)</label>
+            <input type="number" id="duration" min="1" max="3600" value="10" step="1">
+        </div>
+        
+        <button id="mainButton">INICIAR</button>
+        
+        <div id="progressBar">
+            <div id="progressFill"></div>
+        </div>
+        
+        <div id="countdown"></div>
+    </div>
+
+    <script>
+        let audioContext;
+        let oscillator;
+        let gainNode;
+        let isPlaying = false;
+        let startTime;
+        let duration;
+        let animationFrame;
+
+        const button = document.getElementById('mainButton');
+        const countdown = document.getElementById('countdown');
+        const durationInput = document.getElementById('duration');
+        const progressFill = document.getElementById('progressFill');
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function startSound(durationSeconds) {
+            initAudio();
+            
+            oscillator = audioContext.createOscillator();
+            gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + durationSeconds);
+        }
+
+        function stopSound() {
+            if (oscillator) {
+                try {
+                    oscillator.stop();
+                } catch (e) {
+                    // Oscillator may have already stopped
+                }
+                oscillator.disconnect();
+                oscillator = null;
+            }
+            if (gainNode) {
+                gainNode.disconnect();
+                gainNode = null;
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 100);
+            
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+        }
+
+        function updateCountdown() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const remaining = Math.max(0, duration - elapsed);
+            const progress = Math.min(100, (elapsed / duration) * 100);
+            
+            countdown.textContent = formatTime(remaining);
+            progressFill.style.width = progress + '%';
+            
+            if (remaining > 0 && isPlaying) {
+                animationFrame = requestAnimationFrame(updateCountdown);
+            } else if (remaining <= 0) {
+                endTimer();
+            }
+        }
+
+        function endTimer() {
+            isPlaying = false;
+            stopSound();
+            button.textContent = 'INICIAR';
+            button.classList.remove('playing');
+            button.disabled = false;
+            durationInput.disabled = false;
+            countdown.textContent = '';
+            progressFill.style.width = '0%';
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        }
+
+        button.addEventListener('click', function() {
+            if (!isPlaying) {
+                duration = parseFloat(durationInput.value);
+                
+                if (isNaN(duration) || duration <= 0) {
+                    alert('Si us plau, introdueix una durada vàlida major que 0');
+                    return;
+                }
+                
+                startSound(duration);
+                startTime = Date.now();
+                isPlaying = true;
+                button.textContent = 'ATURAR';
+                button.classList.add('playing');
+                durationInput.disabled = true;
+                
+                updateCountdown();
+            } else {
+                endTimer();
+            }
+        });
+
+        // Allow Enter key to start timer
+        durationInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !isPlaying) {
+                button.click();
+            }
+        });
+    </script>
+</body>
+</html>
