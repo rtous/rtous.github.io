@@ -176,7 +176,7 @@
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
             
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
             
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
