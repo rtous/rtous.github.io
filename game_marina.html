@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juego Dinosaurio</title>
+<style>
+body {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+height: 100vh;
+margin: 0;
+background-color: #f7f7f7;
+font-family: Arial, sans-serif;
+}
+
+.game-container {
+position: relative;
+width: 600px;
+height: 200px;
+border: 2px solid #333;
+overflow: hidden;
+background-color: #fff;
+}
+
+.dino {
+position: absolute;
+bottom: 0;
+left: 50px;
+width: 40px;
+height: 40px;
+background-color: #333;
+}
+
+.cactus {
+position: absolute;
+bottom: 0;
+right: -20px;
+width: 20px;
+height: 40px;
+background-color: green;
+}
+
+h2 {
+margin-top: 20px;
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+<div id="dino" class="dino"></div>
+<div id="cactus" class="cactus"></div>
+</div>
+<h2 id="score">Puntuación: 0</h2>
+
+<script>
+const dino = document.getElementById('dino');
+const cactus = document.getElementById('cactus');
+const scoreEl = document.getElementById('score');
+
+let isJumping = false;
+let score = 0;
+
+// Saltar
+function jump() {
+if (isJumping) return;
+isJumping = true;
+let position = 0;
+
+const upInterval = setInterval(() => {
+if (position >= 100) {
+clearInterval(upInterval);
+const downInterval = setInterval(() => {
+if (position <= 0) {
+clearInterval(downInterval);
+isJumping = false;
+}
+position -= 5;
+dino.style.bottom = position + 'px';
+}, 20);
+}
+position += 5;
+dino.style.bottom = position + 'px';
+}, 20);
+}
+
+// Movimiento del cactus
+let cactusPosition = 600;
+function moveCactus() {
+cactusPosition -= 10;
+cactus.style.right = cactusPosition + 'px';
+
+if (cactusPosition < -20) {
+cactusPosition = 600;
+score++;
+scoreEl.textContent = "Puntuación: " + score;
+}
+
+// Colisión
+const dinoTop = parseInt(dino.style.bottom);
+if (cactusPosition < 90 && cactusPosition > 30 && dinoTop < 40) {
+alert("¡Game Over! Puntuación: " + score);
+cactusPosition = 600;
+score = 0;
+scoreEl.textContent = "Puntuación: " + score;
+}
+}
+
+setInterval(moveCactus, 50);
+
+// Evento de salto
+document.addEventListener('keydown', (e) => {
+if (e.code === "Space") jump();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Character Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        #game {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border: 4px solid #333;
+            overflow: hidden;
+        }
+        #character {
+            position: absolute;
+            width: 432px;
+            height: 432px;
+            background-size: auto 432px;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+        }
+        #instructions {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="instructions">
+            Use ← → arrow keys to move, ↑ to jump, SPACE to attack
+        </div>
+        <div id="character"></div>
+    </div>
+
+    <script>
+        const char = document.getElementById('character');
+        const game = document.getElementById('game');
+        
+        // Sprite sheet URLs
+        const idleSprite = 'https://rtous.github.io/png/Idle.png';
+        const runSprite = 'https://rtous.github.io/png/Run.png';
+        const jumpSprite = 'https://rtous.github.io/png/Jump.png';
+        const attackSprite = 'https://rtous.github.io/png/Attack%201.png';
+        
+        // Animation frame counts (will be detected from images)
+        const animations = {
+            idle: { sprite: idleSprite, frames: 7, currentFrame: 0 },
+            run: { sprite: runSprite, frames: 8, currentFrame: 0 },
+            jump: { sprite: jumpSprite, frames: 3, currentFrame: 0 },
+            attack: { sprite: attackSprite, frames: 10, currentFrame: 0 }
+        };
+        
+        let currentAnimation = 'idle';
+        let isAttacking = false;
+        
+        // Initial position (center of game area)
+        let x = (game.offsetWidth - 432) / 2;
+        let y = (game.offsetHeight - 432) / 2;
+        
+        // Movement speed
+        const speed = 5;
+        
+        // Jump variables
+        let velocityY = 0;
+        const gravity = 0.5;
+        const jumpStrength = -12;
+        let isOnGround = true;
+        const groundY = (game.offsetHeight - 432) / 2;
+        
+        // Set initial position
+        char.style.left = x + 'px';
+        char.style.top = y + 'px';
+        
+        // Track which keys are pressed
+        const keys = {};
+        
+        // Animation variables
+        let animationCounter = 0;
+        const animationSpeed = 6; // Higher = slower animation
+        
+        // Set sprite sheet
+        function setAnimation(animName) {
+            if (currentAnimation !== animName) {
+                currentAnimation = animName;
+                animations[animName].currentFrame = 0;
+                char.style.backgroundImage = `url('${animations[animName].sprite}')`;
+            }
+        }
+        
+        // Start attack animation
+        function startAttack() {
+            if (!isAttacking) {
+                isAttacking = true;
+                setAnimation('attack');
+            }
+        }
+        
+        // Check if attack animation is complete
+        function checkAttackComplete() {
+            if (isAttacking && currentAnimation === 'attack') {
+                const anim = animations.attack;
+                if (anim.currentFrame === anim.frames - 1) {
+                    isAttacking = false;
+                }
+            }
+        }
+        
+        // Update sprite frame
+        function updateFrame() {
+            const anim = animations[currentAnimation];
+            const frameWidth = 432;
+            const xOffset = -anim.currentFrame * frameWidth;
+            char.style.backgroundPosition = `${xOffset}px 0px`;
+        }
+        
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' && isOnGround) {
+                velocityY = jumpStrength;
+                isOnGround = false;
+            }
+            if (e.key === ' ') {
+                e.preventDefault(); // Prevent page scroll
+                startAttack();
+            }
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Initialize first animation
+        char.style.backgroundImage = `url('${idleSprite}')`;
+        setAnimation('idle');
+        updateFrame();
+        
+        // Preload images to check if they load
+        const img1 = new Image();
+        img1.onload = () => console.log('Idle sprite loaded:', img1.width, 'x', img1.height);
+        img1.onerror = () => console.log('Failed to load Idle sprite - URL:', idleSprite);
+        img1.src = idleSprite;
+        
+        const img2 = new Image();
+        img2.onload = () => console.log('Run sprite loaded:', img2.width, 'x', img2.height);
+        img2.onerror = () => console.log('Failed to load Run sprite - URL:', runSprite);
+        img2.src = runSprite;
+        
+        const img3 = new Image();
+        img3.onload = () => console.log('Jump sprite loaded:', img3.width, 'x', img3.height);
+        img3.onerror = () => console.log('Failed to load Jump sprite - URL:', jumpSprite);
+        img3.src = jumpSprite;
+        
+        // Game loop - runs continuously
+        function gameLoop() {
+            let isMoving = false;
+            
+            // Horizontal movement
+            if (keys['ArrowRight']) {
+                x += speed;
+                isMoving = true;
+                // Keep character within bounds
+                if (x > game.offsetWidth - 432) {
+                    x = game.offsetWidth - 432;
+                }
+            }
+            if (keys['ArrowLeft']) {
+                x -= speed;
+                isMoving = true;
+                // Keep character within bounds
+                if (x < 0) {
+                    x = 0;
+                }
+            }
+            
+            // Vertical movement (gravity and jumping)
+            velocityY += gravity;
+            y += velocityY;
+            
+            // Ground collision
+            if (y >= groundY) {
+                y = groundY;
+                velocityY = 0;
+                isOnGround = true;
+            }
+            
+            // Update position
+            char.style.left = x + 'px';
+            char.style.top = y + 'px';
+            
+            // Determine which animation to play
+            if (isAttacking) {
+                // Attack animation has priority
+                setAnimation('attack');
+            } else if (!isOnGround) {
+                setAnimation('jump');
+            } else if (isMoving) {
+                setAnimation('run');
+            } else {
+                setAnimation('idle');
+            }
+            
+            // Update animation frame
+            animationCounter++;
+            if (animationCounter >= animationSpeed) {
+                animationCounter = 0;
+                const anim = animations[currentAnimation];
+                anim.currentFrame = (anim.currentFrame + 1) % anim.frames;
+                updateFrame();
+                checkAttackComplete();
+            }
+            
+            // Continue the loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start the game loop
+        gameLoop();
+    </script>
+</body>
+</html>
