@@ -25,9 +25,6 @@
         }
         #character {
             position: absolute;
-            width: 432px;
-            height: 432px;
-            background-size: auto 432px;
             background-repeat: no-repeat;
             image-rendering: pixelated;
         }
@@ -53,10 +50,11 @@
 
     <script>
         const SPRITE_SIZE = 432; // width & height of each frame in the sprite sheet
+        const DISPLAY_SIZE = 216; // smaller version
         const char = document.getElementById('character');
-        char.style.width = SPRITE_SIZE + 'px';
-        char.style.height = SPRITE_SIZE + 'px';
-        char.style.backgroundSize = `auto ${SPRITE_SIZE}px`;
+        char.style.width = DISPLAY_SIZE + 'px';
+        char.style.height = DISPLAY_SIZE + 'px';
+        char.style.backgroundSize = `auto ${DISPLAY_SIZE}px`;
         const game = document.getElementById('game');
         
         // Sprite sheet URLs
@@ -70,7 +68,7 @@
         const animations = {
             idle: { sprite: idleSprite, frames: 8, currentFrame: 0 },
             run: { sprite: runSprite, frames: 8, currentFrame: 0 },
-            jump: { sprite: jumpSprite, frames: 3, currentFrame: 0 },
+            jump: { sprite: jumpSprite, frames: 8, currentFrame: 0 },
             attack: { sprite: attackSprite, frames: 26, currentFrame: 0 }
         };
         
@@ -78,8 +76,8 @@
         let isAttacking = false;
         
         // Initial position (center of game area)
-        let x = (game.offsetWidth - SPRITE_SIZE) / 2;
-        let y = (game.offsetHeight - SPRITE_SIZE) / 2;
+        let x = (game.offsetWidth - DISPLAY_SIZE) / 2;
+        let y = (game.offsetHeight - DISPLAY_SIZE) / 2;
         
         // Movement speed
         const speed = 5;
@@ -89,7 +87,7 @@
         const gravity = 0.5;
         const jumpStrength = -12;
         let isOnGround = true;
-        const groundY = (game.offsetHeight - SPRITE_SIZE) / 2;
+        const groundY = (game.offsetHeight - DISPLAY_SIZE) / 2;
         
         // Set initial position
         char.style.left = x + 'px';
@@ -131,8 +129,13 @@
         
         // Update sprite frame
         function updateFrame() {
+            //const anim = animations[currentAnimation];
+            //const frameWidth = SPRITE_SIZE;
+            
+
             const anim = animations[currentAnimation];
-            const frameWidth = SPRITE_SIZE;
+            const scale = DISPLAY_SIZE / SPRITE_SIZE;
+            const frameWidth = SPRITE_SIZE * scale; // scaled width on screen
             const xOffset = -anim.currentFrame * frameWidth;
             char.style.backgroundPosition = `${xOffset}px 0px`;
         }
