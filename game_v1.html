@@ -25,13 +25,11 @@
         }
         #character {
             position: absolute;
+            width: 432px;
+            height: 432px;
+            background-size: auto 432px;
             background-repeat: no-repeat;
             image-rendering: pixelated;
-        }
-        .obstacle {
-            position: absolute;
-            background-color: #ff0000;
-            border-radius: 5px;
         }
         #instructions {
             position: absolute;
@@ -43,17 +41,6 @@
             border-radius: 5px;
             font-size: 14px;
         }
-        #score {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -61,166 +48,65 @@
         <div id="instructions">
             Use ← → arrow keys to move, ↑ to jump, SPACE to attack
         </div>
-        <div id="score">Score: 0</div>
         <div id="character"></div>
     </div>
 
     <script>
-        const SPRITE_SIZE = 432;
-        const DISPLAY_SIZE = 216;
         const char = document.getElementById('character');
-        char.style.width = DISPLAY_SIZE + 'px';
-        char.style.height = DISPLAY_SIZE + 'px';
-        char.style.backgroundSize = `auto ${DISPLAY_SIZE}px`;
         const game = document.getElementById('game');
         
-        const idleSprite = 'https://rtous.github.io/png2/Idle.png';
-        const runSprite = 'https://rtous.github.io/png2/Run.png';
-        const jumpSprite = 'https://rtous.github.io/png2/Jump.png';
-        const attackSprite = 'https://rtous.github.io/png2/Attack.png';
+        // Sprite sheet URLs
+        const idleSprite = 'https://rtous.github.io/png/Idle.png';
+        const runSprite = 'https://rtous.github.io/png/Run.png';
+        const jumpSprite = 'https://rtous.github.io/png/Jump.png';
+        const attackSprite = 'https://rtous.github.io/png/Attack%201.png';
         
+        // Animation frame counts (will be detected from images)
         const animations = {
-            idle: { sprite: idleSprite, frames: 8, currentFrame: 0 },
+            idle: { sprite: idleSprite, frames: 7, currentFrame: 0 },
             run: { sprite: runSprite, frames: 8, currentFrame: 0 },
-            jump: { sprite: jumpSprite, frames: 1, currentFrame: 0 },
-            attack: { sprite: attackSprite, frames: 26, currentFrame: 0 }
+            jump: { sprite: jumpSprite, frames: 3, currentFrame: 0 },
+            attack: { sprite: attackSprite, frames: 10, currentFrame: 0 }
         };
         
         let currentAnimation = 'idle';
         let isAttacking = false;
         
-        let x = (game.offsetWidth - DISPLAY_SIZE) / 2;
-        let y = (game.offsetHeight - DISPLAY_SIZE) / 2;
+        // Initial position (center of game area)
+        let x = (game.offsetWidth - 432) / 2;
+        let y = (game.offsetHeight - 432) / 2;
         
+        // Movement speed
         const speed = 5;
         
+        // Jump variables
         let velocityY = 0;
-        const gravity = 0.4;
+        const gravity = 0.5;
         const jumpStrength = -12;
         let isOnGround = true;
-        const groundY = (game.offsetHeight - DISPLAY_SIZE) / 2;
+        const groundY = (game.offsetHeight - 432) / 2;
         
+        // Set initial position
         char.style.left = x + 'px';
         char.style.top = y + 'px';
         
+        // Track which keys are pressed
         const keys = {};
         
+        // Animation variables
         let animationCounter = 0;
-        const animationSpeed = 12;
+        const animationSpeed = 6; // Higher = slower animation
         
-        // Obstacle system
-        let obstacles = [];
-        let obstacleSpeed = 4;
-        let obstacleSpawnTimer = 0;
-        let obstacleSpawnInterval = 120; // frames between spawns (adjustable)
-        let score = 0;
-        const scoreDisplay = document.getElementById('score');
-        
-        // Obstacle types with different sizes
-        const obstacleTypes = [
-            { width: 30, height: 50, color: '#ff0000' },  // Red box
-            { width: 40, height: 40, color: '#ff6600' },  // Orange box
-            { width: 50, height: 30, color: '#ffaa00' }   // Yellow box
-        ];
-        
-        function createObstacle() {
-            const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
-            const obstacle = document.createElement('div');
-            obstacle.className = 'obstacle';
-            obstacle.style.width = type.width + 'px';
-            obstacle.style.height = type.height + 'px';
-            obstacle.style.backgroundColor = type.color;
-            obstacle.style.left = game.offsetWidth + 'px';
-            obstacle.style.top = (groundY + DISPLAY_SIZE - type.height) + 'px';
-            
-            game.appendChild(obstacle);
-            
-            obstacles.push({
-                element: obstacle,
-                x: game.offsetWidth,
-                width: type.width,
-                height: type.height,
-                scored: false
-            });
-        }
-        
-        function updateObstacles() {
-            // Spawn new obstacles
-            obstacleSpawnTimer++;
-            if (obstacleSpawnTimer >= obstacleSpawnInterval) {
-                obstacleSpawnTimer = 0;
-                createObstacle();
-            }
-            
-            // Move and check obstacles
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obs = obstacles[i];
-                obs.x -= obstacleSpeed;
-                obs.element.style.left = obs.x + 'px';
-                
-                // Remove if off screen
-                if (obs.x + obs.width < 0) {
-                    obs.element.remove();
-                    obstacles.splice(i, 1);
-                    continue;
-                }
-                
-                // Score points when obstacle passes character
-                if (!obs.scored && obs.x + obs.width < x) {
-                    obs.scored = true;
-                    score++;
-                    scoreDisplay.textContent = 'Score: ' + score;
-                }
-                
-                // Collision detection
-                /*if (checkCollision(obs)) {
-                    gameOver();
-                }*/
-            }
-        }
-        
-        function checkCollision(obstacle) {
-            // Simple bounding box collision
-            const charLeft = x;
-            const charRight = x + DISPLAY_SIZE;
-            const charTop = y;
-            const charBottom = y + DISPLAY_SIZE;
-            
-            const obsLeft = obstacle.x;
-            const obsRight = obstacle.x + obstacle.width;
-            const obsTop = groundY + DISPLAY_SIZE - obstacle.height;
-            const obsBottom = groundY + DISPLAY_SIZE;
-            
-            return charRight > obsLeft && 
-                   charLeft < obsRight && 
-                   charBottom > obsTop && 
-                   charTop < obsBottom;
-        }
-        
-        function gameOver() {
-            alert('Game Over! Score: ' + score);
-            // Reset game
-            obstacles.forEach(obs => obs.element.remove());
-            obstacles = [];
-            score = 0;
-            scoreDisplay.textContent = 'Score: 0';
-            obstacleSpawnTimer = 0;
-            x = (game.offsetWidth - DISPLAY_SIZE) / 2;
-            y = groundY;
-            velocityY = 0;
-            isOnGround = true;
-        }
-        
+        // Set sprite sheet
         function setAnimation(animName) {
             if (currentAnimation !== animName) {
                 currentAnimation = animName;
                 animations[animName].currentFrame = 0;
-                animationCounter = 0;
                 char.style.backgroundImage = `url('${animations[animName].sprite}')`;
-                updateFrame();
             }
         }
         
+        // Start attack animation
         function startAttack() {
             if (!isAttacking) {
                 isAttacking = true;
@@ -228,6 +114,7 @@
             }
         }
         
+        // Check if attack animation is complete
         function checkAttackComplete() {
             if (isAttacking && currentAnimation === 'attack') {
                 const anim = animations.attack;
@@ -237,21 +124,22 @@
             }
         }
         
+        // Update sprite frame
         function updateFrame() {
             const anim = animations[currentAnimation];
-            const scale = DISPLAY_SIZE / SPRITE_SIZE;
-            const frameWidth = SPRITE_SIZE * scale;
+            const frameWidth = 432;
             const xOffset = -anim.currentFrame * frameWidth;
             char.style.backgroundPosition = `${xOffset}px 0px`;
         }
         
+        // Handle keyboard input
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowUp' && isOnGround) {
                 velocityY = jumpStrength;
                 isOnGround = false;
             }
             if (e.key === ' ') {
-                e.preventDefault();
+                e.preventDefault(); // Prevent page scroll
                 startAttack();
             }
             keys[e.key] = true;
@@ -261,10 +149,12 @@
             keys[e.key] = false;
         });
         
+        // Initialize first animation
         char.style.backgroundImage = `url('${idleSprite}')`;
         setAnimation('idle');
         updateFrame();
         
+        // Preload images to check if they load
         const img1 = new Image();
         img1.onload = () => console.log('Idle sprite loaded:', img1.width, 'x', img1.height);
         img1.onerror = () => console.log('Failed to load Idle sprite - URL:', idleSprite);
@@ -280,37 +170,46 @@
         img3.onerror = () => console.log('Failed to load Jump sprite - URL:', jumpSprite);
         img3.src = jumpSprite;
         
+        // Game loop - runs continuously
         function gameLoop() {
             let isMoving = false;
             
+            // Horizontal movement
             if (keys['ArrowRight']) {
                 x += speed;
                 isMoving = true;
-                if (x > game.offsetWidth - SPRITE_SIZE) {
-                    x = game.offsetWidth - SPRITE_SIZE;
+                // Keep character within bounds
+                if (x > game.offsetWidth - 432) {
+                    x = game.offsetWidth - 432;
                 }
             }
             if (keys['ArrowLeft']) {
                 x -= speed;
                 isMoving = true;
+                // Keep character within bounds
                 if (x < 0) {
                     x = 0;
                 }
             }
             
+            // Vertical movement (gravity and jumping)
             velocityY += gravity;
             y += velocityY;
             
+            // Ground collision
             if (y >= groundY) {
                 y = groundY;
                 velocityY = 0;
                 isOnGround = true;
             }
             
+            // Update position
             char.style.left = x + 'px';
             char.style.top = y + 'px';
             
+            // Determine which animation to play
             if (isAttacking) {
+                // Attack animation has priority
                 setAnimation('attack');
             } else if (!isOnGround) {
                 setAnimation('jump');
@@ -320,6 +219,7 @@
                 setAnimation('idle');
             }
             
+            // Update animation frame
             animationCounter++;
             if (animationCounter >= animationSpeed) {
                 animationCounter = 0;
@@ -329,12 +229,11 @@
                 checkAttackComplete();
             }
             
-            // Update obstacles
-            updateObstacles();
-            
+            // Continue the loop
             requestAnimationFrame(gameLoop);
         }
         
+        // Start the game loop
         gameLoop();
     </script>
 </body>
