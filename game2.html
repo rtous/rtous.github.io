@@ -67,7 +67,7 @@
         // Animation frame counts (will be detected from images)
         const animations = {
             //idle: { sprite: idleSprite, frames: 8, currentFrame: 0 },
-            idle: { sprite: idleSprite, frames: 5, currentFrame: 0 },
+            idle: { sprite: idleSprite, frames: 10, currentFrame: 0 },
             run: { sprite: runSprite, frames: 8, currentFrame: 0 },
             jump: { sprite: jumpSprite, frames: 10, currentFrame: 0 },
             attack: { sprite: attackSprite, frames: 26, currentFrame: 0 }
@@ -85,7 +85,7 @@
         
         // Jump variables
         let velocityY = 0;
-        const gravity = 0.4;//0.5
+        const gravity = 0.3;//0.5
         const jumpStrength = -12;
         let isOnGround = true;
         const groundY = (game.offsetHeight - DISPLAY_SIZE) / 2;
@@ -99,7 +99,7 @@
         
         // Animation variables
         let animationCounter = 0;
-        const animationSpeed = 12; //10 Higher = slower animation
+        const animationSpeed = 20; //12 Higher = slower animation
         
         // Set sprite sheet
         function setAnimation(animName) {
