@@ -452,3 +452,10 @@ body {
   color: #000;
   letter-spacing: -0.02em;
 }
+
+/* Hide top logo on mobile */
+@media (max-width: 768px) {
+  .top-logo {
+    display: none;
+  }
+}
