@@ -1,0 +1,324 @@
+/*
+main blue: 79 175 249 #4faff9
+darker: 30 88 151
+
+*/
+
+
+/* ===== Base ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  background-color: #0a0a0a;
+  color: #fff;
+  text-align: center;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ===== Size Utility Classes ===== */
+.size-small { max-width: 200px !important; }
+.size-medium { max-width: 400px !important; }
+.size-large { max-width: 600px !important; }
+.size-xlarge { max-width: 800px !important; }
+
+/* Custom widths */
+.width-25 { width: 25% !important; }
+.width-50 { width: 50% !important; }
+.width-75 { width: 75% !important; }
+.width-100 { width: 100% !important; }
+
+/* Aspect Ratio Classes */
+.aspect-square { aspect-ratio: 1/1; object-fit: cover; }
+.aspect-wide { aspect-ratio: 16/9; object-fit: cover; }
+.aspect-ultra-wide { aspect-ratio: 21/9; object-fit: cover; }
+.aspect-portrait { aspect-ratio: 9/16; object-fit: cover; }
+.aspect-4-3 { aspect-ratio: 4/3; object-fit: cover; }
+.aspect-vertical { aspect-ratio: 2/4; object-fit: cover; }
+
+/* Object Fit Options */
+.fit-cover { object-fit: cover; }
+.fit-contain { object-fit: contain; }
+.fit-fill { object-fit: fill; }
+
+/* ===== Hero Section ===== */
+.hero {
+  min-height: 90vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  gap: 3rem;
+  background-color: #fff;
+  color: #000;
+}
+
+.hero-content {
+  flex: 1;
+  max-width: 500px;
+  text-align: left;
+}
+
+.hero-image {
+  flex: 0 1 auto;
+  max-width: 400px;
+}
+
+.hero-image img {
+  width: 100%;
+  border-radius: 1rem;
+  height: auto;
+  object-fit: contain;
+}
+
+.logo {
+  width: 320px;
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+.cta {
+  background: #1E5897; /* main blue */
+  color: #fff;
+  padding: 0.9rem 2rem;
+  border-radius: 30px;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.cta:hover {
+  background: #2a74c4; /* lighter blue on hover */
+}
+
+/* ===== Features Section ===== */
+.features {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  background-color: black; /* #4FAFF9 new light blue background */
+  flex-wrap: wrap;
+  color: #000;
+}
+
+.feature-item {
+  flex: 0 1 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.feature-item img {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  object-fit: contain;
+  border: none;
+  box-shadow: none;
+  transition: none; /* no hover or animation */
+}
+
+
+
+
+
+/* ===== Download Section ===== */
+.download {
+  background-color: #fff;
+  color: #000;
+  padding: 4rem 1rem;
+}
+
+.download h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.button {
+  background: #1E5897; /* new blue color */
+  color: white;
+  padding: 0.8rem 1.6rem;
+  border-radius: 25px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.button:hover {
+  background: #2a74c4; /* slightly lighter blue on hover */
+}
+
+.button.secondary {
+  background: #e0e0e0; /* soft gray for secondary */
+  color: #000;
+}
+
+.button.secondary:hover {
+  background: #cfcfcf;
+}
+
+/* ===== Info Section ===== */
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  padding: 4rem 2rem;
+  background-color: #0a0a0a;
+  color: #fff;
+  flex-wrap: wrap;
+}
+
+* Color variants for info section */
+.info.dark {
+  background-color: #0a0a0a;
+  color: #fff;
+}
+
+.info.light {
+  background-color: #fff;
+  color: #000;
+}
+
+.info-content {
+  flex: 1;
+  max-width: 500px;
+  text-align: left;
+}
+
+.info-content h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #FFFFFF;
+}
+
+/* Heading color variants */
+.info.dark .info-content h2 {
+  color: #FFFFFF;
+}
+
+.info.light .info-content h2 {
+  color: #000000;
+}
+
+
+.info-content p {
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  opacity: 0.85;
+}
+
+.info-video {
+  flex: 1;
+  max-width: 500px;
+}
+
+.info-video video {
+  width: 100%;
+  max-height: 300px;
+  /*border-radius: 1rem;*/
+  /*box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);*/
+}
+
+.info-image img {
+  width: 100%;
+  max-height: 300px;
+  /*border-radius: 1rem;*/
+  /*box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);*/
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  .info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .info-content {
+    text-align: center;
+  }
+}
+
+
+/* ===== Footer ===== */
+footer {
+  padding: 2rem 1rem;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hero-content {
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+}
+
+/* fade */
+.hero, .download {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease;
+}
+
+.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Top Logo ===== */
+.top-logo {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.top-logo img {
+  width: 50px;
+  height: auto;
+}
+
+.top-logo span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #000;
+}
