@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lester: Una Nueva Era para el Rotoscoping en Animación Indie y Desarrollo de Juegos Retro</title>
+  <meta name="description" content="Lester es una nueva herramienta de rotoscopia local lanzada este noviembre que ayuda a animadores indie, desarrolladores de juegos retro y artistas de píxeles a convertir referencias de video en animaciones 2D estilizadas — rápido, privado y sin suscripción." />
+  <style>
+    /* Estilos mínimos y limpios para el artículo */
+    :root{
+      --max-width: 880px;
+      --muted: #666;
+      --accent: #0b63d6;
+      --bg: #fff;
+      --card: #f7f8fb;
+    }
+    body{
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.6;
+      color: #222;
+      background: var(--bg);
+      padding: 36px 18px;
+      display: flex;
+      justify-content: center;
+    }
+    .container{
+      max-width: var(--max-width);
+      width: 100%;
+      background: white;
+      padding: 36px;
+      box-shadow: 0 6px 30px rgba(15,20,30,0.06);
+      border-radius: 12px;
+    }
+    header h1{
+      margin: 0 0 12px 0;
+      font-size: 2rem;
+      line-height: 1.15;
+    }
+    header .byline{
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 22px;
+    }
+    /* NUEVO: Banner de 4 GIFs */
+    .gif-banner {
+      display: flex;
+      gap: 8px;
+      margin: 18px 0;
+      justify-content: center;
+    }
+    .gif-banner img {
+      height: 130px; /* Ajusta si quieres más pequeño/grande */
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--card);
+      flex: 1;
+    }
+    .gif-caption {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+    figure{
+      margin: 18px 0;
+      background: var(--card);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    figure img{
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      display: block;
+      margin: 0 auto;
+    }
+    figure figcaption{
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    article p{
+      margin: 18px 0;
+      font-size: 1.05rem;
+      text-wrap: pretty;
+    }
+    .highlight{
+      color: var(--accent);
+      font-weight: 600;
+    }
+    footer{
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    @media (max-width:600px){
+      .container{ padding: 20px; }
+      header h1{ font-size: 1.5rem; }
+      .gif-banner img{ height: 90px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container" role="main">
+    <header>
+      <h1>Lester: Una Nueva Era para el Rotoscoping en Animación Indie y Desarrollo de Juegos Retro</h1>
+      <!--<div class="byline">Lanzamiento: Noviembre <span class="highlight">2025</span> · Por <span class="highlight">[Nombre del Autor]</span></div>-->
+      <div class="byline">Noviembre <span class="highlight">2025</span></div>
+    
+      <!-- Banner de 4 GIFs -->
+      <div class="gif-banner">
+        <img src="assets/jumping.gif" alt="Fotograma demo de rotoscopia 1" />
+        <img src="assets/girl.gif" alt="Fotograma demo de rotoscopia 2" />
+        <img src="assets/running.gif" alt="Fotograma demo de rotoscopia 3" />
+        <img src="assets/jump_up.gif" alt="Fotograma demo de rotoscopia 4" />
+      </div>
+      <div class="gif-caption">Ejemplos de animaciones rotoscopiadas creadas con Lester</div>
+
+    </header>
+
+    <article>
+      <p>
+        Este noviembre llega <strong>Lester</strong>, un editor de animación 2D basado en rotoscopia especialmente dirigido a desarrolladores indie de juegos retro y creadores de pixel art. Desarrollado por Ruben Tous, de la Universitat Politècnica de Catalunya, Lester se distribuye como una aplicación de escritorio gratuita y local. El editor simplifica los aspectos repetitivos de la rotoscopia, particularmente la propagación de máscaras entre fotogramas. En una era dominada por la IA generativa, es refrescante ver herramientas enfocadas en apoyar genuinamente a los artistas en su oficio.
+      </p>
+
+      <p>
+        En industrias como el cine o los videojuegos, la rotoscopia se ha empleado tradicionalmente para aprovechar la información de metraje de acción real en la creación de animaciones 2D. Esta técnica contribuyó al surgimiento de una estética visual única en ciertos videojuegos icónicos de los años 80 y 90, como “Prince of Persia” (1989) de Jordan Mechner, “Another World” (1991) de Éric Chahi o “Flashback” (1992). La técnica ayudó a definir una era. Ese legado persiste en títulos indie modernos como “Lunark” (2023) de Johan Vinet, que se inspiran en la misma estética, y Lester se posiciona como un puente práctico entre el encanto de esos clásicos y las realidades de la producción independiente actual. Al automatizar ajustes repetitivos de fotograma a fotograma mientras se preservan las formas precisas y decisiones del artista, la herramienta busca hacer la rotoscopia accesible para pequeños equipos y desarrolladores en solitario que antes podrían haber evitado la técnica debido a su carga laboral.
+      </p>
+      <div class="gif-banner">
+        <img src="assets/prince_of_persia.webp" alt="Fotograma demo de rotoscopia 1" />
+        <img src="assets/another_world.jpg" alt="Fotograma demo de rotoscopia 3" />
+        <img src="assets/flashback.jpg" alt="Fotograma demo de rotoscopia 4" />
+        <img src="assets/lunark.png" alt="Fotograma demo de rotoscopia 2" />
+      </div>
+      <div class="gif-caption">Juegos clásicos rotoscopiados: Prince of Persia (1989), Another World (1991), Flashback (1992) y Lunark (2023)</div>
+
+      <p>
+        A diferencia de la mayoría del software actual, Lester es una aplicación de escritorio local, no requiere conexión a Internet y es gratuita. La aplicación está disponible para macOS y Windows; la versión de Windows incluye una variante opcional acelerada por GPU para un procesamiento más rápido, mientras que hay una versión solo CPU disponible para equipos sin hardware gráfico dedicado. Es importante notar que Lester se encuentra actualmente en la versión 0.1.11-alpha. Aunque la herramienta es totalmente utilizable y capaz de producir resultados profesionales, aún se encuentra en desarrollo activo. Los usuarios deben esperar algunos errores ocasionales y características en evolución a medida que el software madura. Aunque Lester es adecuado para diversos animadores, ha sido creado con una audiencia particular en mente: desarrolladores indie de juegos retro y artistas de píxeles. Estos creadores a menudo buscan el movimiento realista que la rotoscopia puede ofrecer, pero necesitan un resultado que pueda estilizarse en sprites de baja resolución, trazos simplificados o arte con paleta limitada. Lester les permite extraer siluetas limpias y formas simplificadas a partir de video, refinar esas formas para ajustarlas a una estética elegida y producir secuencias de fotogramas fáciles de convertir en pixel art o animación esquemática. Para un desarrollador en solitario construyendo un pequeño juego con un toque cinematográfico, o un artista de píxeles que desea ciclos de caminata y gestos realistas pero estilizados, la herramienta ofrece una manera de lograr esas ambiciones sin un equipo completo de animación.
+      </p>
+
+      <figure>
+        <img src="assets/screenshot.png" alt="Marcador: fotogramas exportados o pixel art derivado de fotogramas rotoscopiados" />
+        <figcaption>Captura de pantalla de la ventana principal de Lester</figcaption>
+      </figure>
+
+      <p>
+        El contexto del lanzamiento de Lester importa tanto como el software en sí. En un panorama de software dominado por servicios de suscripción y ofertas de IA en la nube, una pequeña herramienta gratuita y ejecutada localmente, creada para creadores independientes, se siente como un contrapeso deliberado. El origen de un solo desarrollador del proyecto le otorga un ethos particular: fue creado para resolver problemas reales que enfrentan artistas individuales y pequeños equipos, en lugar de ser una vitrina de estrategias de monetización. Esa sensibilidad probablemente resonará con aficionados, cineastas experimentales y pequeños estudios que valoran la transparencia, la portabilidad y un flujo de trabajo que puedan entender y controlar completamente.
+      </p>
+
+      <p>
+        Lester no reemplazará la tradición de la animación dibujada a mano, ni está pensado para hacerlo. Lo que ofrece es un camino pragmático para llevar referencias de acción real a animaciones 2D estilizadas y precisas fotograma a fotograma sin el costo históricamente alto en tiempo y personal. Para desarrolladores indie que buscan ese look cinematográfico retro, y para artistas de píxeles que desean la riqueza del movimiento natural condensada en una paleta limitada o resolución reducida, la herramienta representa una forma accesible de perseguir objetivos visuales ambiciosos. Si más creadores comienzan a adoptar la rotoscopia porque se ha reducido la barrera de entrada, podríamos ver una nueva ola de proyectos inspirados en lo retro que combinen sensibilidades clásicas de animación con independencia contemporánea.
+      </p>
+
+      <figure>
+        <img src="assets/connor.gif" alt="Marcador: fotogramas exportados o pixel art derivado de fotogramas rotoscopiados" style="height: 150px;"/>
+        <figcaption>Animación creada a partir de un video de MMA</figcaption>
+      </figure>
+
+      <p>
+        Por ahora, el debut de Lester este noviembre debe verse como una invitación: una invitación a experimentar, a recuperar una técnica de animación poderosa y a hacerlo en términos que respeten la propiedad y visión del artista. Ya sea que seas un desarrollador indie en solitario puliendo el ciclo de carrera de un protagonista pixelado, un animador freelance explorando movimientos estilizados, o un pequeño estudio buscando herramientas de producción predecibles, Lester merece ser probado: una pequeña herramienta local que hace que una técnica tradicionalmente costosa sea mucho más accesible.
+      </p>
+    </article>
+
+    <footer>
+      <div>Descarga e información: <span style="font-weight:600">
+        <a href="https://rtous.github.io/lester/">https://rtous.github.io/lester/</a>
+        </span></div>
+      <!--<div style="margin-top:8px">Créditos: Lester — desarrollado por Ruben Tous. Para consultas de prensa, contacta a <span class="highlight">[email/contact]</span>.</div>-->
+    </footer>
+  </main>
+</body>
+</html>
