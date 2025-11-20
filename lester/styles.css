@@ -459,3 +459,34 @@ body {
     display: none;
   }
 }
+
+/* ------------- */
+.press {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #111; /* matches your dark sections */
+  color: white;
+}
+
+.press h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.press-logos {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+}
+
+.press-logos img {
+  height: 50px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.press-logos img:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
