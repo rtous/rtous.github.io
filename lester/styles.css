@@ -420,7 +420,8 @@ body {
 
 /* ===== Top Logo ===== */
 .top-logo {
-  position: fixed;
+  /*position: fixed;*/
+  position: absolute;   /* was: fixed */
   top: 1.5rem;
   left: 1.5rem;
   z-index: 1000;
@@ -481,7 +482,8 @@ body {
 
 /* ===== Top Right Icon ===== */
 .top-icon {
-  position: fixed;
+  /*position: fixed;*/
+  position: absolute;   /* was: fixed */
   top: 1.5rem;
   right: 1.5rem;
   z-index: 1000;
