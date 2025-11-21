@@ -60,26 +60,11 @@ a {
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  gap: 3rem;
+  gap: 1.2rem !important;   /* was 3rem */
   background-color: #4faff9;/*#4faff9; #66a4ce*/
   color: #000;
   position: relative;
 }
-
-/*
-.hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 0, 0, 0.3); 
-  pointer-events: none; 
-  z-index: 999;
-  mix-blend-mode: multiply; 
-}
-*/
 
 .hero-content {
   flex: 1;
@@ -106,14 +91,14 @@ a {
 
 .hero h1 {
   font-size: 3rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;    /* reduce title space */
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
 .hero p {
-  margin-bottom: 2rem;
+  margin-bottom: 1.2rem;    /* reduce paragraph space */
   opacity: 0.7;
   font-size: 1.125rem;
   line-height: 1.6;
