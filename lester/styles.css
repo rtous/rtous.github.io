@@ -45,7 +45,8 @@ a {
 .aspect-ultra-wide { aspect-ratio: 21/9; object-fit: cover; }
 .aspect-portrait { aspect-ratio: 9/16; object-fit: cover; }
 .aspect-4-3 { aspect-ratio: 4/3; object-fit: cover; }
-.aspect-vertical { aspect-ratio: 2/4; object-fit: cover; }
+/* .aspect-vertical { aspect-ratio: 2/4; object-fit: cover; } */
+.aspect-vertical { aspect-ratio: unset; object-fit: cover; }
 
 /* Object Fit Options */
 .fit-cover { object-fit: cover; }
