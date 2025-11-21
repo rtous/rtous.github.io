@@ -442,7 +442,7 @@ body {
 }
 
 .top-logo img {
-  width: 50px;
+  width: 100px;
   height: auto;
 }
 
@@ -489,4 +489,31 @@ body {
 .press-logos img:hover {
   opacity: 1;
   transform: scale(1.05);
+}
+
+/* ===== Top Right Icon ===== */
+.top-icon {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+}
+
+.top-icon img {
+  width: 120px;
+  height: auto;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.top-icon img:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* Hide on mobile (optional) */
+@media (max-width: 768px) {
+  .top-icon {
+    display: none;
+  }
 }
