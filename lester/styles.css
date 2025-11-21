@@ -124,6 +124,30 @@ a {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* ==== hero section on mobile */
+
+@media (max-width: 768px) {
+
+  /* Remove giant vertical spacing */
+  .hero {
+    min-height: auto !important;   /* removes forced fullscreen height */
+    padding: 1.5rem 1rem !important;
+    gap: 1rem !important;
+  }
+
+  .hero-content h1 {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .hero p {
+    margin-bottom: 1rem !important;
+  }
+
+  .hero-image {
+    margin-top: 0 !important;
+  }
+}
+
 /* ===== Features Section ===== */
 .features {
   display: flex;
