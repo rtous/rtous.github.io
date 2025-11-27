@@ -52,7 +52,9 @@ function initCRTEffect() {
 // Initialize CRT effect when page loads
 window.addEventListener('DOMContentLoaded', initCRTEffect);
 
-// Downloads count
+// Downloads count 
+//does not work because of CORS
+/*
 async function fetchTotalDownloads() {
   const url = 'https://api.github.com/repos/rtous/lester/releases';
   const downloadsEl = document.getElementById('downloads');
@@ -81,3 +83,4 @@ async function fetchTotalDownloads() {
 
 // Call it
 fetchTotalDownloads();
+*/
