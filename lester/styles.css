@@ -210,6 +210,27 @@ a {
   border-color: #d0d0d0;
 }
 
+.button2 {
+  background: gray;
+  color: #fff;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  display: inline-block;
+  
+  letter-spacing: -0.01em;
+}
+
+.button2:hover {
+  background: #transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+
+
 /* ===== Info Section ===== */
 .info {
   display: flex;
