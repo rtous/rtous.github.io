@@ -51,3 +51,33 @@ function initCRTEffect() {
 
 // Initialize CRT effect when page loads
 window.addEventListener('DOMContentLoaded', initCRTEffect);
+
+// Downloads count
+async function fetchTotalDownloads() {
+  const url = 'https://api.github.com/repos/rtous/lester/releases';
+  const downloadsEl = document.getElementById('downloads');
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network error');
+
+    const releases = await response.json();
+
+    // Sum all download_count across all assets
+    let totalDownloads = 0;
+    releases.forEach(release => {
+      release.assets.forEach(asset => {
+        totalDownloads += asset.download_count;
+      });
+    });
+
+    // Display nicely
+    downloadsEl.textContent = `Download count: ${totalDownloads.toLocaleString()}`;
+  } catch (error) {
+    console.error('Error fetching GitHub releases:', error);
+    downloadsEl.textContent = 'Error loading download count';
+  }
+}
+
+// Call it
+fetchTotalDownloads();
