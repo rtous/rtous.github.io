@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub Download Counter</title>
+  <style>
+    #downloads {
+      font-size: 2em;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <h1>Total Downloads</h1>
+  <div id="downloads">Loading...</div>
+
+  <script>
+    async function fetchTotalDownloads() {
+      const url = 'https://api.github.com/repos/rtous/lester/releases';
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const releases = await response.json();
+
+        // Sum all download_count values across all assets of all releases
+        let totalDownloads = 0;
+        releases.forEach(release => {
+          release.assets.forEach(asset => {
+            totalDownloads += asset.download_count;
+          });
+        });
+
+        // Display nicely with commas
+        document.getElementById('downloads').textContent = totalDownloads.toLocaleString();
+      } catch (error) {
+        console.error('Error fetching GitHub releases:', error);
+        document.getElementById('downloads').textContent = 'Error loading data';
+      }
+    }
+
+    fetchTotalDownloads();
+  </script>
+</body>
+</html>
