@@ -1096,6 +1096,10 @@ function loop() {
 initGame();
 state = 'start';
 loop();
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > window.innerHeight) location.reload();
+});
 </script>
 </body>
 </html>
