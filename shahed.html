@@ -8,9 +8,26 @@
     * { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
     body { background: #0a0a0a; font-family: monospace; }
     canvas { display: block; touch-action: none; }
+    #rotate-msg {
+      display: none;
+      position: fixed; inset: 0;
+      background: #0a0a0a;
+      color: #ccc;
+      font-family: monospace;
+      font-size: 18px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 10;
+    }
+    @media (orientation: portrait) {
+      #rotate-msg { display: flex; }
+      canvas { display: none; }
+    }
   </style>
 </head>
 <body>
+<div id="rotate-msg">&#x21BA; Please rotate your device to landscape</div>
 <canvas id="canvas"></canvas>
 <script>
 const canvas = document.getElementById('canvas');
