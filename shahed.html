@@ -225,7 +225,7 @@ function sliderRect(type) {
 
 // ─── Fullscreen ───────────────────────────────────────────────────────────────
 function requestFullscreen() {
-  const el = canvas;
+  const el = document.documentElement;
   try {
     if      (el.requestFullscreen)       el.requestFullscreen().catch(() => {});
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
@@ -897,7 +897,7 @@ function drawStartScreen() {
   // PLAY button
   const btn = playBtnRect();
   ctx.fillStyle = '#4dd0e1';
-  ctx.beginPath(); ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 8); ctx.fill();
+  ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
   ctx.font = 'bold 22px monospace'; ctx.fillStyle = '#000';
   ctx.fillText('PLAY', W / 2, btn.y + btn.h * 0.67);
   // Landscape notice
