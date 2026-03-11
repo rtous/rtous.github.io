@@ -2,32 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>City Siege</title>
+  <title>SHAHED</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
     body { background: #0a0a0a; font-family: monospace; }
-    canvas { display: block; touch-action: none; }
-    #rotate-msg {
-      display: none;
-      position: fixed; inset: 0;
-      background: #0a0a0a;
-      color: #ccc;
-      font-family: monospace;
-      font-size: 18px;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      z-index: 10;
-    }
-    @media (orientation: portrait) {
-      #rotate-msg { display: flex; }
-      canvas { display: none; }
-    }
+    canvas { display: block; }
   </style>
 </head>
 <body>
-<div id="rotate-msg">&#x21BA; Please rotate your device to landscape</div>
 <canvas id="canvas"></canvas>
 <script>
 const canvas = document.getElementById('canvas');
@@ -35,10 +17,66 @@ const ctx    = canvas.getContext('2d');
 const W = canvas.width  = window.innerWidth;
 const H = canvas.height = window.innerHeight;
 
-// ─── Images ───────────────────────────────────────────────────────────────────
-const imgInterceptor = new Image(); imgInterceptor.src = 'interceptor.png';
-const imgLauncher    = new Image(); imgLauncher.src    = 'launcher1.png';
-const imgNukeLauncher = new Image(); imgNukeLauncher.src = 'launcher3.png';
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const CONFIG = {
+  gravity:           0.007,
+  groundYRatio:      0.72,
+  droneCruiseAltRatio: 0.28,
+  interceptSpeed:    2.7,
+  interceptRadius:   16,
+  fireCooldown:      90,
+  aaDelay:           90,
+  aaMaxActive:       8,
+  aaCooldown:        180,
+  platformW:         28,
+  platformH:         8,
+  dayLength:         10800,
+  incomeInterval:    3600,
+  initialBudget:     100,
+  dailyIncome:       50,
+  aiFireMin:         150,
+  aiFireMax:         300,
+  aiBuyInterval:     1800,
+};
+const GROUND_Y         = Math.round(H * CONFIG.groundYRatio);
+const DRONE_CRUISE_ALT = Math.round(H * CONFIG.droneCruiseAltRatio);
+
+// ─── WEAPONS ─────────────────────────────────────────────────────────────────
+const WEAPONS = {
+  aa:        { cost: 20,  ammoCost: 5,   ammoPack: 5, label: 'PATRIOT',  defensive: true,  image: 'interceptor', imageW: 73, imageH: 47, imageScale: 0.45, initialAmmoPacks: 10, alwaysBuyAmmo: true },
+  launcher:  { cost: 20,  ammoCost: 5,   ammoPack: 5, label: 'SAM2',     explRadius: 38,  damage: 18, image: 'launcher',    imageW: 76, imageH: 48, imageScale: 0.45, weaponCooldown: 90,  defaultFireFreq: 0, fireIntervalMin: 60,  fireIntervalMax: 540, initialAmmoPacks: 10, alwaysBuyAmmo: true },
+  nuke:      { cost: 200, ammoCost: 50,  ammoPack: 1, label: 'SCUD',     explRadius: 110, damage: 65, image: 'nukeLauncher', imageW: 76, imageH: 48, imageScale: 0.45, weaponCooldown: 90,  defaultFireFreq: 0, fireIntervalMin: 60,  fireIntervalMax: 540, initialAmmoPacks: 5,  isNuke: true },
+  artillery: { cost: 30,  ammoCost: 8,   ammoPack: 4, label: 'ARTILLERY', explRadius: 55,  damage: 26, image: 'artillery',   imageW: 76, imageH: 48, imageScale: 0.45, weaponCooldown: 150, defaultFireFreq: 0, fireIntervalMin: 60,  fireIntervalMax: 540, initialAmmoPacks: 5 },
+  humvee:    { cost: 15,  ammoCost: 5,   ammoPack: 5, label: 'HUMVEE',   explRadius: 28,  damage: 12, image: 'humvee',      imageW: 76, imageH: 48, imageScale: 0.45, weaponCooldown: 90,  defaultFireFreq: 0, fireIntervalMin: 40,  fireIntervalMax: 200, initialAmmoPacks: 5,  isDrone: true },
+  nuke2:     { cost: 350, ammoCost: 100, ammoPack: 1, label: 'NUKE',     explRadius: 150, damage: 80, image: 'nuke2',       imageW: 76, imageH: 48, imageScale: 0.45, weaponCooldown: 90,  defaultFireFreq: 0, fireIntervalMin: 60,  fireIntervalMax: 540, initialAmmoPacks: 3,  isNuke: true },
+};
+const WEAPON_TYPES    = Object.keys(WEAPONS);
+const OFFENSIVE_TYPES = WEAPON_TYPES.filter(k => !WEAPONS[k].defensive);
+
+// ─── CITIES config ───────────────────────────────────────────────────────────
+const CITIES = [
+  { xRatio: 0.10, color: '#4dd0e1', name: 'City 1', seed: 42,  side: 0 },
+  { xRatio: 0.90, color: '#ef5350', name: 'City 2', seed: 99,  side: 1 },
+];
+
+// ─── SHOP layout config ──────────────────────────────────────────────────────
+const SHOP_COLS    = [['aa', 'launcher', 'nuke'], ['artillery', 'humvee', 'nuke2']];
+const SHOP_ROW_H   = 52;
+const SHOP_COL_W   = 200;
+const SHOP_COL_GAP = 2;
+const SHOP_Y_OFFSET = 48;
+
+// ─── Images ──────────────────────────────────────────────────────────────────
+const IMAGE_SRCS = {
+  interceptor:  'interceptor.png',
+  launcher:     'launcher1.png',
+  nukeLauncher: 'launcher3.png',
+  artillery:    'launcher4.png',
+  humvee:       'launcher5.png',
+  nuke2:        'launcher6.png',
+};
+const images = {};
+Object.entries(IMAGE_SRCS).forEach(([k, src]) => { images[k] = new Image(); images[k].src = src; });
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -161,39 +199,7 @@ function sndIncome(ac) {
   });
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-const GRAVITY            = 0.007;
-const EXPL_RADIUS        = 38;
-const NUKE_EXPL_RADIUS   = 110;
-const INTERCEPT_SPD      = 2.7;
-const INTERCEPT_R        = 16;
-const FIRE_COOLDOWN      = 90; // ~1.5s per launcher
-const AA_DELAY           = 90;
-const AA_MAX_ACTIVE      = 8;
-const AA_COOLDOWN        = 180; // min frames between shots per AA gun (~3s)
-const DRONE_SPD          = 2.5;
-const DRONE_EXPL_RADIUS  = 28;
-const DRONE_CRUISE_ALT   = Math.round(H * 0.28);
-const PLATFORM_W         = 28;
-const PLATFORM_H         = 8;
-const GROUND_Y           = Math.round(H * 0.72);
-const DAY_LENGTH         = 10800;   // ~3 min at 60 fps
-const INCOME_INTERVAL    = 3600;    // 60 seconds at 60 fps
-
-// Costs (dollars)
-const INITIAL_BUDGET   = 100;
-const DAILY_INCOME     = 50;
-const AA_COST          = 20;
-const LAUNCHER_COST    = 20;
-const NUKE_COST        = 200;
-const AMMO_COST        = { launcher: 5, nuke: 50, aa: 5 };
-const AMMO_PACK        = { launcher: 5, nuke: 1,  aa: 5  }; // shots per purchase (also given free on weapon buy)
-
-const AI_FIRE_MIN      = 150;
-const AI_FIRE_MAX      = 300;
-const AI_BUY_INTERVAL  = 1800;  // buy a weapon every 30s
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function lerpColor(a, b, t) {
   const ha = parseInt(a.slice(1), 16), hb = parseInt(b.slice(1), 16);
   const r = ((ha>>16)&0xff) + (((hb>>16)&0xff) - ((ha>>16)&0xff)) * t;
@@ -202,7 +208,31 @@ function lerpColor(a, b, t) {
   return `rgb(${r|0},${g|0},${bl|0})`;
 }
 function fmt(b) { return `$${b}`; }
-function dayPhase() { return dayTimer / DAY_LENGTH; }
+function dayPhase() { return dayTimer / CONFIG.dayLength; }
+
+function makeRng(seed) {
+  let n = seed;
+  return () => { n = (n * 1664525 + 1013904223) & 0xffffffff; return (n >>> 0) / 0xffffffff; };
+}
+
+// ─── Layout helpers ──────────────────────────────────────────────────────────
+function shopRect(col) {
+  return {
+    x: SHOP_COL_GAP + col * (SHOP_COL_W + SHOP_COL_GAP),
+    y: GROUND_Y + SHOP_Y_OFFSET,
+    w: SHOP_COL_W,
+    h: SHOP_ROW_H * SHOP_COLS[col].length + 26,
+  };
+}
+function sliderRect(type) {
+  for (let col = 0; col < SHOP_COLS.length; col++) {
+    const row = SHOP_COLS[col].indexOf(type);
+    if (row < 0) continue;
+    const sr = shopRect(col);
+    return { x: sr.x + 63, y: sr.y + 16 + row * SHOP_ROW_H + 36, w: sr.w - 70, h: 7 };
+  }
+  return null;
+}
 
 // ─── Input ───────────────────────────────────────────────────────────────────
 const keys = {};
@@ -215,47 +245,38 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 function canvasPos(e) { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
 
-// ─── Touch → Mouse forwarding ────────────────────────────────────────────────
-function forwardTouch(mouseType, e) {
-  const t = e.touches[0] || e.changedTouches[0];
-  canvas.dispatchEvent(new MouseEvent(mouseType, { clientX: t.clientX, clientY: t.clientY, bubbles: true }));
-}
-canvas.addEventListener('touchstart', e => { e.preventDefault(); forwardTouch('mousedown', e); }, { passive: false });
-canvas.addEventListener('touchmove',  e => { e.preventDefault(); forwardTouch('mousemove', e); }, { passive: false });
-canvas.addEventListener('touchend',   e => { e.preventDefault(); forwardTouch('mouseup',   e); }, { passive: false });
-
 // ─── Drag (weapon placement) ──────────────────────────────────────────────────
 let drag = null;
 canvas.addEventListener('mousedown', e => {
   if (state === 'start') { audioCtx.resume(); state = 'playing'; return; }
-  if (state === 'gameover') { initGame(); return; }
   if (state !== 'playing') return;
   const {x: mx, y: my} = canvasPos(e);
   const p = players[0];
 
   // Sliders for fire frequency
-  for (const [key, rect] of [['launcher', launcherSliderRect()], ['nuke', nukeSliderRect()]]) {
-    if (mx >= rect.x - 6 && mx <= rect.x + rect.w + 6 && my >= rect.y - 6 && my <= rect.y + rect.h + 6) {
-      sliderDragging = key;
+  for (const type of OFFENSIVE_TYPES) {
+    const rect = sliderRect(type);
+    if (!rect) continue;
+    const deployed = players[0].platforms.some(pl => pl.type === type);
+    if (deployed && mx >= rect.x - 6 && mx <= rect.x + rect.w + 6 && my >= rect.y - 6 && my <= rect.y + rect.h + 6) {
+      sliderDragging = type;
       const v = Math.max(0, Math.min(1, (mx - rect.x) / rect.w));
-      if (key === 'launcher') launcherFireFreq = v; else nukeFireFreq = v;
+      fireState[type].freq = v;
       return;
     }
   }
 
-  // Shop: weapon drag to place
-  const sr = shopRect();
-  if (my >= sr.y && my <= sr.y + sr.h && mx >= sr.x && mx <= sr.x + sr.w) {
-    const weapRows = [
-      { type: 'aa',       cost: AA_COST },
-      { type: 'launcher', cost: LAUNCHER_COST },
-      { type: 'nuke',     cost: NUKE_COST },
-    ];
-    weapRows.forEach((wt, i) => {
-      const rowY = sr.y + 16 + i * SHOP_ROW_H;
-      if (my >= rowY && my <= rowY + 44 && p.budget >= wt.cost)
-        drag = { type: wt.type, x: mx, y: my };
-    });
+  // Shop columns: weapon drag to place
+  for (let col = 0; col < SHOP_COLS.length; col++) {
+    const sr = shopRect(col);
+    if (my >= sr.y && my <= sr.y + sr.h && mx >= sr.x && mx <= sr.x + sr.w) {
+      SHOP_COLS[col].forEach((type, i) => {
+        const w = WEAPONS[type];
+        const rowY = sr.y + 16 + i * SHOP_ROW_H;
+        if (my >= rowY && my <= rowY + 44 && p.budget >= w.cost)
+          drag = { type, x: mx, y: my };
+      });
+    }
   }
 });
 
@@ -263,36 +284,41 @@ canvas.addEventListener('mousemove', e => {
   const {x, y} = canvasPos(e);
   mousePos = {x, y};
   if (sliderDragging) {
-    const sl = sliderDragging === 'nuke' ? nukeSliderRect() : launcherSliderRect();
-    const v = Math.max(0, Math.min(1, (x - sl.x) / sl.w));
-    if (sliderDragging === 'launcher') launcherFireFreq = v; else nukeFireFreq = v;
+    const sl = sliderRect(sliderDragging);
+    if (sl) {
+      const v = Math.max(0, Math.min(1, (x - sl.x) / sl.w));
+      fireState[sliderDragging].freq = v;
+    }
   }
   if (drag) { drag.x = x; drag.y = y; }
   let pointer = false;
   if (state === 'playing') {
-    for (const sl of [launcherSliderRect(), nukeSliderRect()])
-      if (x >= sl.x - 4 && x <= sl.x + sl.w + 4 && y >= sl.y - 4 && y <= sl.y + sl.h + 4) pointer = true;
-    const sr = shopRect();
-    if (x >= sr.x && x <= sr.x + sr.w && y >= sr.y && y <= sr.y + sr.h) pointer = true;
+    for (const type of OFFENSIVE_TYPES) {
+      const sl = sliderRect(type);
+      if (sl && x >= sl.x - 4 && x <= sl.x + sl.w + 4 && y >= sl.y - 4 && y <= sl.y + sl.h + 4) pointer = true;
+    }
+    for (let col = 0; col < SHOP_COLS.length; col++) {
+      const sr = shopRect(col);
+      if (x >= sr.x && x <= sr.x + sr.w && y >= sr.y && y <= sr.y + sr.h) pointer = true;
+    }
   }
   canvas.style.cursor = sliderDragging ? 'ew-resize' : pointer ? 'pointer' : drag ? 'grabbing' : 'default';
 });
 
 canvas.addEventListener('mouseup', e => {
-  sliderDragging = false;
+  sliderDragging = null;
   if (!drag) return;
   const {x: mx, y: my} = canvasPos(e);
   const p    = players[0];
   const plat = p.platforms.find(pl =>
-    Math.abs(mx - pl.x) <= PLATFORM_W && my >= GROUND_Y - 90 && my <= GROUND_Y + 20
+    Math.abs(mx - pl.x) <= CONFIG.platformW && my >= GROUND_Y - 90 && my <= GROUND_Y + 20
   );
   if (plat && plat.type !== drag.type) {
-    const costs = { aa: AA_COST, launcher: LAUNCHER_COST, nuke: NUKE_COST };
-    const cost  = costs[drag.type];
-    if (cost && p.budget >= cost) {
+    const w = WEAPONS[drag.type];
+    if (w && p.budget >= w.cost) {
       plat.type = drag.type;
-      plat.cooldown = 0;
-      p.budget -= cost;
+      plat.cooldown = w.weaponCooldown || CONFIG.fireCooldown;
+      p.budget -= w.cost;
     }
   }
   drag = null;
@@ -300,7 +326,7 @@ canvas.addEventListener('mouseup', e => {
 
 // ─── Buildings ───────────────────────────────────────────────────────────────
 function genBgBuildings(seed) {
-  const rng = (n => () => { n = (n * 1664525 + 1013904223) & 0xffffffff; return (n >>> 0) / 0xffffffff; })(seed);
+  const rng = makeRng(seed);
   const buildings = [];
   let rx = -110;
   while (rx < 110) {
@@ -312,7 +338,7 @@ function genBgBuildings(seed) {
 }
 
 function genBuildings(seed) {
-  const rng = (n => () => { n = (n * 1664525 + 1013904223) & 0xffffffff; return (n >>> 0) / 0xffffffff; })(seed);
+  const rng = makeRng(seed);
   const buildings = [];
   let rx = -80;
   while (rx < 80) {
@@ -327,52 +353,48 @@ function genBuildings(seed) {
 function makePlatforms(cityX, pointRight) {
   const gap = 34;
   const clear = pointRight ? 132 : 95;
-  // Left city: all platforms extend rightward; right city: all extend leftward
   const s = pointRight ? 1 : -1;
-  const offsets = [
-    s*clear, s*(clear+gap), s*(clear+2*gap), s*(clear+3*gap),
-    s*(clear+4*gap), s*(clear+5*gap), s*(clear+6*gap), s*(clear+7*gap),
-    s*(clear+8*gap), s*(clear+9*gap), s*(clear+10*gap)
-  ];
-  return offsets.map(off => ({
-    x: Math.round(Math.max(20, Math.min(W - 20, cityX + off))),
+  return Array.from({ length: 11 }, (_, idx) => ({
+    x: Math.round(Math.max(20, Math.min(W - 20, cityX + s * (clear + idx * gap)))),
     type: 'empty', pointRight, cooldown: 0
   }));
 }
 
 // ─── Players ─────────────────────────────────────────────────────────────────
 let players;
-function makeCity(cityX, color, name, seed, side) {
+function makeCity(cfg) {
+  const cityX = Math.round(W * cfg.xRatio);
   return {
-    cityX, hp: 100, color, name,
-    buildings: genBuildings(seed),
-    bgBuildings: genBgBuildings(seed + 1000),
-    budget: INITIAL_BUDGET,
-    ammo: { launcher: 0, nuke: 0, aa: 0 },
-    platforms: makePlatforms(cityX, side === 0)
+    cityX, hp: 100, color: cfg.color, name: cfg.name,
+    buildings:   genBuildings(cfg.seed),
+    bgBuildings: genBgBuildings(cfg.seed + 1000),
+    budget: CONFIG.initialBudget,
+    ammo: Object.fromEntries(WEAPON_TYPES.map(t => [t, 0])),
+    platforms: makePlatforms(cityX, cfg.side === 0),
   };
 }
-function initPlayers() {
-  players = [
-    makeCity(Math.round(W * 0.10), '#4dd0e1', 'City 1', 42, 0),
-    makeCity(Math.round(W * 0.90), '#ef5350', 'City 2', 99, 1)
-  ];
-}
+function initPlayers() { players = CITIES.map(makeCity); }
 
 // ─── Game state ───────────────────────────────────────────────────────────────
 let state, winner;
 let missiles = [], interceptors = [], pendingAA = [], explosions = [], smoke = [], fires = [];
 let flashMsg = null;
-let currentIncome = DAILY_INCOME;
-let dayTimer = 0, dayCount = 1, aiFireTimer = 150, incomeTimer = 0, aiBuyTimer = AI_BUY_INTERVAL;
-// Auto-fire sequencing (player)
-let launcherFireFreq = 0.35;   // 0=slow .. 1=fast
-let nukeFireFreq     = 0.15;
-let launcherSeqIdx = 0, launcherFireTimer = 0;
-let nukeSeqIdx = 0, nukeFireTimer = 0;
-let sliderDragging = null; // null | 'launcher' | 'nuke'
-function launcherInterval() { return Math.round(540 - launcherFireFreq * 480); } // 540..60 frames
-function nukeInterval()     { return Math.round(540 - nukeFireFreq     * 480); }
+let currentIncome = CONFIG.dailyIncome;
+let dayTimer = 0, dayCount = 1, aiFireTimer = 150, incomeTimer = 0, aiBuyTimer = CONFIG.aiBuyInterval;
+
+// Fire state map: type -> { freq, seqIdx, timer }
+let fireState = {};
+function initFireState() {
+  OFFENSIVE_TYPES.forEach(type => {
+    fireState[type] = { freq: WEAPONS[type].defaultFireFreq, seqIdx: 0, timer: 0 };
+  });
+}
+function fireInterval(type) {
+  const { fireIntervalMin: mn, fireIntervalMax: mx } = WEAPONS[type];
+  return Math.round(mx - fireState[type].freq * (mx - mn));
+}
+
+let sliderDragging = null;
 
 function setFlash(t, c) { flashMsg = { text: t, color: c, ttl: 90 }; }
 
@@ -387,43 +409,32 @@ function aiDeployWeapon(type) {
 function initGame() {
   initPlayers();
   missiles = []; interceptors = []; pendingAA = []; explosions = []; smoke = []; fires = [];
-  flashMsg = null; drag = null; sliderDragging = false; currentIncome = DAILY_INCOME;
-  dayTimer = 0; dayCount = 1; aiFireTimer = 150; incomeTimer = 0; aiBuyTimer = AI_BUY_INTERVAL;
-  launcherSeqIdx = 0; launcherFireTimer = 0; nukeSeqIdx = 0; nukeFireTimer = 0;
+  flashMsg = null; drag = null; sliderDragging = null; currentIncome = CONFIG.dailyIncome;
+  dayTimer = 0; dayCount = 1; aiFireTimer = 150; incomeTimer = 0; aiBuyTimer = CONFIG.aiBuyInterval;
+  initFireState();
+
   // Player starts with one AA deployed
   const p = players[0];
   const emptyP = p.platforms.filter(pl => pl.type === 'empty');
   if (emptyP.length) { emptyP[0].type = 'aa'; }
-  p.ammo.aa       = AMMO_PACK.aa       * 10;
-  p.ammo.launcher = AMMO_PACK.launcher * 10;
-  p.ammo.nuke     = AMMO_PACK.nuke     * 5;
+
+  // Set initial ammo from WEAPONS data
+  WEAPON_TYPES.forEach(type => {
+    p.ammo[type] = WEAPONS[type].ammoPack * (WEAPONS[type].initialAmmoPacks || 0);
+  });
+
   // AI starts with one launcher and one AA deployed
   aiDeployWeapon('launcher');
   aiDeployWeapon('aa');
   state = 'playing'; winner = null;
 }
 
-// ─── Rects ───────────────────────────────────────────────────────────────────
-function shopRect() { return { x: 2, y: Math.min(GROUND_Y + 48, H - 184), w: 200, h: 182 }; }
-const SHOP_ROW_H = 52;
-function launcherSliderRect() {
-  const sr = shopRect();
-  const rowY = sr.y + 16 + 1 * SHOP_ROW_H; // MISSILE is row index 1
-  return { x: sr.x + 63, y: rowY + 36, w: sr.w - 70, h: 7 };
-}
-function nukeSliderRect() {
-  const sr = shopRect();
-  const rowY = sr.y + 16 + 2 * SHOP_ROW_H; // SCUD is row index 2
-  return { x: sr.x + 63, y: rowY + 36, w: sr.w - 70, h: 7 };
-}
-function fireBtnRect(x)  { return { x: x - 16, y: GROUND_Y + 3, w: 32, h: 13 }; }
-
 // ─── Ammo ────────────────────────────────────────────────────────────────────
-function buyAmmo(type) {
-  const p = players[0];
-  if (p.budget < AMMO_COST[type]) return;
-  p.budget -= AMMO_COST[type];
-  p.ammo[type] += AMMO_PACK[type];
+function buyAmmo(type, player) {
+  const w = WEAPONS[type];
+  if (player.budget < w.ammoCost) return;
+  player.budget -= w.ammoCost;
+  player.ammo[type] += w.ammoPack;
 }
 
 // ─── Firing ───────────────────────────────────────────────────────────────────
@@ -434,71 +445,49 @@ function queueInterceptors(fromPlayer) {
   guns.forEach(gun => {
     if (players[defIdx].ammo.aa <= 0) return;
     players[defIdx].ammo.aa--;
-    gun.aaCooldown = AA_COOLDOWN;
-    pendingAA.push({ countdown: AA_DELAY + (Math.random() * 60 | 0), fromX: gun.x, defIdx });
+    gun.aaCooldown = CONFIG.aaCooldown;
+    pendingAA.push({ countdown: CONFIG.aaDelay + (Math.random() * 60 | 0), fromX: gun.x, defIdx });
   });
 }
 
-function spawnMissile(x, y, vx, vy, isNuke, isDrone, fromPlayer) {
-  missiles.push({ x, y, vx, vy, isNuke, isDrone: !!isDrone, fromPlayer: fromPlayer || 0, trail: [], dead: false });
+function spawnMissile(x, y, vx, vy, missileType, fromPlayer) {
+  const w = WEAPONS[missileType] || {};
+  missiles.push({ x, y, vx, vy, isNuke: !!w.isNuke, isDrone: !!w.isDrone, fromPlayer, trail: [], dead: false, missileType });
   playSound(sndLaunch);
-  queueInterceptors(fromPlayer || 0);
+  queueInterceptors(fromPlayer);
 }
 
-function fireLauncher(pl) {
-  const isNuke = pl.type === 'nuke';
-  if (pl.cooldown > 0) return;
-  const ammoKey = isNuke ? 'nuke' : 'launcher';
-  if (players[0].ammo[ammoKey] <= 0) return;
-  const enemy = players[1];
+function fireLauncher(pl, playerIdx) {
+  const type = pl.type;
+  const w = WEAPONS[type];
+  if (pl.cooldown > 0 || players[playerIdx].ammo[type] <= 0) return;
+  const enemy = players[1 - playerIdx];
   const dx = enemy.cityX - pl.x, dist = Math.abs(dx), dir = Math.sign(dx);
+  const isNuke = !!w.isNuke;
   const minDeg = isNuke ? 44 : 48, maxDeg = isNuke ? 54 : 58;
   const angleBase = (minDeg + Math.random() * (maxDeg - minDeg)) * Math.PI / 180;
   const spread = (Math.random() - 0.5) * (isNuke ? 5 : 3) * Math.PI / 180;
   const angle = Math.max(0.3, Math.min(1.1, angleBase + spread));
-  const spd = Math.sqrt((GRAVITY * dist) / Math.max(0.01, Math.sin(2 * angle)));
-  spawnMissile(pl.x, GROUND_Y - 5, dir * Math.cos(angle) * spd, -Math.sin(angle) * spd, isNuke, false, 0);
-  players[0].ammo[ammoKey]--;
-  pl.cooldown = FIRE_COOLDOWN;
-}
-
-
-function fireAIPlatforms() {
-  const ai = players[1];
-  const target = players[0];
-  const launchers = ai.platforms.filter(p => (p.type === 'launcher' || p.type === 'nuke') && p.cooldown <= 0);
-  if (!launchers.length) return;
-  const ammoKey = launchers[0].type === 'nuke' ? 'nuke' : 'launcher';
-  if (ai.ammo[ammoKey] <= 0) return;
-  const pl = launchers[Math.random() * launchers.length | 0];
-  const dx = target.cityX - pl.x, dist = Math.abs(dx), dir = Math.sign(dx);
-  const minDeg = pl.type === 'nuke' ? 44 : 48, maxDeg = pl.type === 'nuke' ? 54 : 58;
-  const angleBase = (minDeg + Math.random() * (maxDeg - minDeg)) * Math.PI / 180;
-  const spread = (Math.random() - 0.5) * 3 * Math.PI / 180;
-  const angle = Math.max(0.3, Math.min(1.1, angleBase + spread));
-  const spd = Math.sqrt((GRAVITY * dist) / Math.max(0.01, Math.sin(2 * angle)));
-  spawnMissile(pl.x, GROUND_Y - 5, dir * Math.cos(angle) * spd, -Math.sin(angle) * spd, pl.type === 'nuke', false, 1);
-  ai.ammo[ammoKey]--;
-  pl.cooldown = FIRE_COOLDOWN;
+  const spd = Math.sqrt((CONFIG.gravity * dist) / Math.max(0.01, Math.sin(2 * angle)));
+  spawnMissile(pl.x, GROUND_Y - 5, dir * Math.cos(angle) * spd, -Math.sin(angle) * spd, type, playerIdx);
+  players[playerIdx].ammo[type]--;
+  pl.cooldown = w.weaponCooldown || CONFIG.fireCooldown;
 }
 
 function launchInterceptor(fromX, defIdx) {
-  // Only target missiles fired by the other side
   const targets = missiles.filter(m => m.fromPlayer === 1 - defIdx && !m.dead);
-  if (!targets.length || interceptors.length >= AA_MAX_ACTIVE) return;
+  if (!targets.length || interceptors.length >= CONFIG.aaMaxActive) return;
   const ay = GROUND_Y - 10;
   let target = targets[0], nearDist = Infinity;
   targets.forEach(m => { const d = Math.hypot(m.x - players[defIdx].cityX, m.y - GROUND_Y); if (d < nearDist) { nearDist = d; target = m; } });
-  // Lead prediction — but clamp to above ground so we never aim downward
   const dist = Math.hypot(target.x - fromX, target.y - ay);
-  const leadT = dist / INTERCEPT_SPD;
+  const leadT = dist / CONFIG.interceptSpeed;
   const px = target.x + target.vx * leadT;
-  const py = target.y + target.vy * leadT + 0.5 * GRAVITY * leadT * leadT;
-  // If predicted point is underground, aim at missile's current position instead
+  const py = target.y + target.vy * leadT + 0.5 * CONFIG.gravity * leadT * leadT;
   const aimX = py >= GROUND_Y ? target.x : px;
   const aimY = py >= GROUND_Y ? target.y : py;
   const dx = aimX - fromX, dy = aimY - ay, d = Math.sqrt(dx*dx + dy*dy) || 1;
-  interceptors.push({ x: fromX, y: ay, vx: (dx/d)*INTERCEPT_SPD, vy: (dy/d)*INTERCEPT_SPD, trail: [], dead: false, defIdx });
+  interceptors.push({ x: fromX, y: ay, vx: (dx/d)*CONFIG.interceptSpeed, vy: (dy/d)*CONFIG.interceptSpeed, trail: [], dead: false, defIdx });
   playSound(sndAALaunch);
 }
 
@@ -512,12 +501,12 @@ function hitsCity(p, m) {
   return false;
 }
 
-function applyDamage(x, y, isNuke, isDrone) {
-  const r   = (isNuke ? NUKE_EXPL_RADIUS : isDrone ? DRONE_EXPL_RADIUS : EXPL_RADIUS) + 45;
-  const dmg = isNuke ? 65 : isDrone ? 12 : 18;
+function applyDamage(x, y, missileType) {
+  const w = WEAPONS[missileType] || WEAPONS.launcher;
+  const r = w.explRadius + 45;
   players.forEach(p => {
     const d = Math.hypot(p.cityX - x, GROUND_Y - y);
-    if (d < r) p.hp = Math.max(0, p.hp - Math.round((1 - d / r) * dmg));
+    if (d < r) p.hp = Math.max(0, p.hp - Math.round((1 - d / r) * w.damage));
   });
 }
 
@@ -532,11 +521,11 @@ function update() {
 
   // Day / night cycle
   dayTimer++;
-  if (dayTimer >= DAY_LENGTH) { dayTimer = 0; dayCount++; }
+  if (dayTimer >= CONFIG.dayLength) { dayTimer = 0; dayCount++; }
 
-  // Income every 20 seconds
+  // Income every interval
   incomeTimer++;
-  if (incomeTimer >= INCOME_INTERVAL) {
+  if (incomeTimer >= CONFIG.incomeInterval) {
     incomeTimer = 0;
     players[0].budget += currentIncome;
     players[1].budget += currentIncome;
@@ -546,61 +535,51 @@ function update() {
   }
 
   // Auto-refill ammo for player when empty
-  ['launcher', 'nuke', 'aa'].forEach(type => {
-    if (players[0].ammo[type] <= 0) buyAmmo(type);
+  WEAPON_TYPES.forEach(type => {
+    if (players[0].ammo[type] <= 0) buyAmmo(type, players[0]);
   });
 
-  // Auto-fire player launchers (sequential)
-  {
-    const launchers = players[0].platforms.filter(pl => pl.type === 'launcher');
-    if (launchers.length > 0) {
-      if (--launcherFireTimer <= 0) {
-        launcherFireTimer = launcherInterval();
-        launcherSeqIdx = launcherSeqIdx % launchers.length;
-        fireLauncher(launchers[launcherSeqIdx]);
-        launcherSeqIdx++;
+  // Auto-fire player platforms (loop-based)
+  OFFENSIVE_TYPES.forEach(type => {
+    const plats = players[0].platforms.filter(pl => pl.type === type);
+    const fs = fireState[type];
+    if (plats.length > 0) {
+      if (--fs.timer <= 0) {
+        fs.timer = fireInterval(type);
+        fs.seqIdx = fs.seqIdx % plats.length;
+        fireLauncher(plats[fs.seqIdx], 0);
+        fs.seqIdx++;
       }
-    } else { launcherFireTimer = 0; launcherSeqIdx = 0; }
-  }
-
-  // Auto-fire player nukes (sequential, fixed rate)
-  {
-    const nukes = players[0].platforms.filter(pl => pl.type === 'nuke');
-    if (nukes.length > 0) {
-      if (--nukeFireTimer <= 0) {
-        nukeFireTimer = nukeInterval();
-        nukeSeqIdx = nukeSeqIdx % nukes.length;
-        fireLauncher(nukes[nukeSeqIdx]);
-        nukeSeqIdx++;
-      }
-    } else { nukeFireTimer = 0; nukeSeqIdx = 0; }
-  }
+    } else { fs.timer = 0; fs.seqIdx = 0; }
+  });
 
   // AI update
   {
     const ai = players[1];
     // Fire missiles from deployed platforms
     if (--aiFireTimer <= 0) {
-      fireAIPlatforms();
-      aiFireTimer = AI_FIRE_MIN + Math.floor(Math.random() * (AI_FIRE_MAX - AI_FIRE_MIN));
+      // Pick a random ready offensive platform
+      const launchers = ai.platforms.filter(p => OFFENSIVE_TYPES.includes(p.type) && p.cooldown <= 0);
+      if (launchers.length) {
+        const pl = launchers[Math.random() * launchers.length | 0];
+        if (ai.ammo[pl.type] > 0) fireLauncher(pl, 1);
+      }
+      aiFireTimer = CONFIG.aiFireMin + Math.floor(Math.random() * (CONFIG.aiFireMax - CONFIG.aiFireMin));
     }
-    // Buy ammo when exhausted
-    if (ai.ammo.launcher <= 0 && ai.budget >= AMMO_COST.launcher) {
-      ai.budget -= AMMO_COST.launcher; ai.ammo.launcher += AMMO_PACK.launcher;
-    }
-    if (ai.ammo.aa <= 0 && ai.budget >= AMMO_COST.aa) {
-      ai.budget -= AMMO_COST.aa; ai.ammo.aa += AMMO_PACK.aa;
-    }
-    if (ai.ammo.nuke <= 0 && ai.platforms.some(p => p.type === 'nuke') && ai.budget >= AMMO_COST.nuke) {
-      ai.budget -= AMMO_COST.nuke; ai.ammo.nuke += AMMO_PACK.nuke;
-    }
+    // Buy ammo when exhausted (unified loop)
+    WEAPON_TYPES.forEach(type => {
+      const w = WEAPONS[type];
+      if (ai.ammo[type] > 0 || ai.budget < w.ammoCost) return;
+      if (w.alwaysBuyAmmo || ai.platforms.some(pl => pl.type === type))
+        buyAmmo(type, ai);
+    });
     // Buy weapons at fixed pace, alternating launcher / aa
     if (--aiBuyTimer <= 0) {
-      aiBuyTimer = AI_BUY_INTERVAL;
+      aiBuyTimer = CONFIG.aiBuyInterval;
       const launcherCount = ai.platforms.filter(p => p.type === 'launcher').length;
       const aaCount = ai.platforms.filter(p => p.type === 'aa').length;
       const buyType = launcherCount <= aaCount ? 'launcher' : 'aa';
-      const cost = buyType === 'aa' ? AA_COST : LAUNCHER_COST;
+      const cost = WEAPONS[buyType].cost;
       if (ai.budget >= cost) { ai.budget -= cost; aiDeployWeapon(buyType); }
     }
   }
@@ -613,16 +592,17 @@ function update() {
       const distToEnemy = Math.abs(m.x - enemy.cityX);
       const cruiseY = GROUND_Y - DRONE_CRUISE_ALT;
       if (distToEnemy > 60) { m.vy += (cruiseY - m.y) * 0.05; m.vy = Math.max(-3, Math.min(1.5, m.vy)); }
-      else { m.vy += GRAVITY * 2.5; }
-    } else { m.vy += GRAVITY; }
+      else { m.vy += CONFIG.gravity * 2.5; }
+    } else { m.vy += CONFIG.gravity; }
     m.x += m.vx; m.y += m.vy;
     if (m.x < 0 || m.x >= W || m.y > H + 20) { m.dead = true; return; }
     const explode = (hx, hy) => {
-      applyDamage(hx, hy, m.isNuke, m.isDrone);
-      const maxR = m.isNuke ? NUKE_EXPL_RADIUS : m.isDrone ? DRONE_EXPL_RADIUS : EXPL_RADIUS;
-      explosions.push({ x: hx, y: hy, r: 2, maxR, alpha: 1, nuke: m.isNuke, age: 0, phase: 'expand' });
-      spawnSmoke(hx, hy, m.isNuke ? 35 : 18);
-      playSound(ac => sndExplosion(ac, m.isNuke));
+      applyDamage(hx, hy, m.missileType);
+      const isNukeType = !!WEAPONS[m.missileType].isNuke;
+      const maxR = WEAPONS[m.missileType].explRadius;
+      explosions.push({ x: hx, y: hy, r: 2, maxR, alpha: 1, nuke: isNukeType, age: 0, phase: 'expand' });
+      spawnSmoke(hx, hy, isNukeType ? 35 : 18);
+      playSound(ac => sndExplosion(ac, isNukeType));
       m.dead = true;
     };
     if (m.y >= GROUND_Y) { explode(m.x, m.y); return; }
@@ -639,18 +619,17 @@ function update() {
 
   interceptors.forEach(ic => {
     if (ic.dead) return;
-    // Only chase missiles from the enemy side
     const enemyMissiles = missiles.filter(m => m.fromPlayer === 1 - ic.defIdx && !m.dead);
     let nearest = null, nearDist = Infinity;
     enemyMissiles.forEach(m => { const d = Math.hypot(m.x - ic.x, m.y - ic.y); if (d < nearDist) { nearDist = d; nearest = m; } });
     if (!nearest) { ic.dead = true; return; }
     const dx = nearest.x - ic.x, dy = nearest.y - ic.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
-    ic.vx += ((dx/d)*INTERCEPT_SPD - ic.vx) * 0.10;
-    ic.vy += ((dy/d)*INTERCEPT_SPD - ic.vy) * 0.10;
+    ic.vx += ((dx/d)*CONFIG.interceptSpeed - ic.vx) * 0.10;
+    ic.vy += ((dy/d)*CONFIG.interceptSpeed - ic.vy) * 0.10;
     const cs = Math.sqrt(ic.vx**2 + ic.vy**2) || 1;
-    ic.vx = (ic.vx/cs)*INTERCEPT_SPD; ic.vy = (ic.vy/cs)*INTERCEPT_SPD;
+    ic.vx = (ic.vx/cs)*CONFIG.interceptSpeed; ic.vy = (ic.vy/cs)*CONFIG.interceptSpeed;
     ic.x += ic.vx; ic.y += ic.vy;
-    if (nearDist < INTERCEPT_R) {
+    if (nearDist < CONFIG.interceptRadius) {
       explosions.push({ x: nearest.x, y: nearest.y, r: 2, maxR: 10, alpha: 1, nuke: false, age: 0, phase: 'expand' });
       nearest.dead = true; ic.dead = true;
       spawnSmoke(nearest.x, nearest.y, 10);
@@ -710,75 +689,33 @@ function drawTerrain() {
   ctx.beginPath(); ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); ctx.stroke();
 }
 
-function drawAAGunAt(cx, sy, color, right) {
-  const iw = 73, ih = 47, scale = 0.45;
-  const dw = iw * scale, dh = ih * scale;
+function drawWeaponAt(type, cx, sy, right) {
+  const w = WEAPONS[type];
+  if (!w) return;
+  const img = images[w.image];
+  const scale = w.imageScale || 0.45;
+  const dw = w.imageW * scale, dh = w.imageH * scale;
   ctx.save();
-  ctx.translate(cx, sy - dh/2);
-  if (right === false) { ctx.scale(-1, 1); }
-  ctx.drawImage(imgInterceptor, -dw/2, -dh/2, dw, dh);
+  ctx.translate(cx, sy - dh / 2);
+  if (!right) ctx.scale(-1, 1);
+  ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
   ctx.restore();
 }
 
-function drawLauncherAt(cx, sy, color, right) {
-  const iw = 76, ih = 48, scale = 0.45;
-  const dw = iw * scale, dh = ih * scale;
-  ctx.save();
-  ctx.translate(cx, sy - dh/2);
-  if (!right) { ctx.scale(-1, 1); }
-  ctx.drawImage(imgLauncher, -dw/2, -dh/2, dw, dh);
-  ctx.restore();
-}
-
-function drawNukeLauncherAt(cx, sy, color, right) {
-  const iw = 76, ih = 48, scale = 0.45;
-  const dw = iw * scale, dh = ih * scale;
-  ctx.save();
-  ctx.translate(cx, sy - dh/2);
-  if (!right) { ctx.scale(-1, 1); }
-  ctx.drawImage(imgNukeLauncher, -dw/2, -dh/2, dw, dh);
-  ctx.restore();
-}
-
-function drawFireBtn(x, type, cooling) {
-  const br  = fireBtnRect(x);
-  const ammo = players[0].ammo[type] || 0;
-  const rdy = ammo > 0 && !cooling;
-  const isNuke = type === 'nuke';
-  const hot = rdy && mousePos.x >= br.x && mousePos.x <= br.x + br.w && mousePos.y >= br.y && mousePos.y <= br.y + br.h;
-  ctx.fillStyle = !ammo ? '#222' : cooling ? '#333' : isNuke ? (hot ? '#6a1b9a' : '#4a148c') : (hot ? '#d32f2f' : '#b71c1c');
-  ctx.fillRect(br.x, br.y, br.w, br.h);
-  ctx.fillStyle = rdy ? '#fff' : '#444'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
-  ctx.fillText(!ammo ? `NO AMMO` : cooling ? `WAIT` : `FIRE`, x, br.y + 10);
-}
-
-function drawPlatforms(p, isPlayer1) {
+function drawPlatforms(p) {
   p.platforms.forEach(pl => {
-    const sy = GROUND_Y;
-    if (pl.type === 'aa') {
-      const hasAmmo = p.ammo.aa > 0;
-      ctx.globalAlpha = hasAmmo ? 1 : 0.45;
-      drawAAGunAt(pl.x, sy, '#111', pl.pointRight);
-      ctx.globalAlpha = 1;
-    } else if (pl.type === 'launcher') {
-      const hasAmmo = p.ammo.launcher > 0;
-      ctx.globalAlpha = hasAmmo ? 1 : 0.45;
-      drawLauncherAt(pl.x, sy, '#111', pl.pointRight);
-      ctx.globalAlpha = 1;
-    } else if (pl.type === 'nuke') {
-      const hasAmmo = p.ammo.nuke > 0;
-      ctx.globalAlpha = hasAmmo ? 1 : 0.45;
-      drawNukeLauncherAt(pl.x, sy, '#111', pl.pointRight);
-      ctx.globalAlpha = 1;
-    }
+    if (pl.type === 'empty') return;
+    ctx.globalAlpha = p.ammo[pl.type] > 0 ? 1 : 0.45;
+    drawWeaponAt(pl.type, pl.x, GROUND_Y, pl.pointRight);
+    ctx.globalAlpha = 1;
   });
 }
 
 function drawBgCity(p) {
   const WIN_COLORS = [
-    'rgba(180,210,240,0.7)',   // blue-white (bg layer from city_v1)
-    'rgba(220,190,120,0.5)',   // warm orange (bg layer from city_v1)
-    'rgba(200,225,255,0.5)',   // cool white (bg layer from city_v1)
+    'rgba(180,210,240,0.7)',
+    'rgba(220,190,120,0.5)',
+    'rgba(200,225,255,0.5)',
   ];
   p.bgBuildings.forEach((b, i) => {
     const bx = p.cityX + b.rx, by = GROUND_Y - b.h;
@@ -813,9 +750,9 @@ function drawCity(p) {
     ctx.fillStyle = '#111'; ctx.fillRect(bx - b.w/2, by, b.w, b.h);
     ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.strokeRect(bx - b.w/2, by, b.w, b.h);
     const WIN_COLORS = [
-      'rgba(240,165,40,1)',    // orange
-      'rgba(235,235,210,1)',   // white/cream
-      'rgba(255,220,80,1)',    // yellow
+      'rgba(240,165,40,1)',
+      'rgba(235,235,210,1)',
+      'rgba(255,220,80,1)',
     ];
     const winColor = WIN_COLORS[i % 3];
     ctx.save();
@@ -857,8 +794,8 @@ function spawnFire(x, y, isNuke) {
       x: x + (Math.random() - 0.5) * spread,
       y: GROUND_Y,
       spread,
-      life: 0.7 + Math.random() * 0.6,   // long life
-      phase: Math.random() * Math.PI * 2  // flicker offset
+      life: 0.7 + Math.random() * 0.6,
+      phase: Math.random() * Math.PI * 2
     });
   }
 }
@@ -958,71 +895,55 @@ function drawExplosions() {
     g.addColorStop(0.7, `rgba(200,40,0,${a*0.8})`);
     g.addColorStop(1,   `rgba(80,10,0,0)`);
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = g; ctx.fill();
-
   });
 }
 
-
 function drawShop() {
-  const p  = players[0];
-  const sr = shopRect();
-  ctx.fillStyle = 'rgba(0,0,0,0.82)'; ctx.fillRect(sr.x, sr.y, sr.w, sr.h);
-  ctx.strokeStyle = '#37474f'; ctx.lineWidth = 1; ctx.strokeRect(sr.x, sr.y, sr.w, sr.h);
-
-  const rows = [
-    { type: 'aa',       ammoType: 'aa',       cost: AA_COST,       label: 'PATRIOT',  color: '#80cbc4', draw: (cx,sy) => drawAAGunAt(cx, sy, p.color) },
-    { type: 'launcher', ammoType: 'launcher', cost: LAUNCHER_COST, label: 'SAM2', color: '#ff9800', draw: (cx,sy) => drawLauncherAt(cx, sy, p.color, true) },
-    { type: 'nuke',     ammoType: 'nuke',     cost: NUKE_COST,     label: 'SCUD',    color: '#ff9800', draw: (cx,sy) => drawNukeLauncherAt(cx, sy, p.color, true) },
-  ];
-
-  rows.forEach((it, i) => {
-    const rowY = sr.y + 16 + i * SHOP_ROW_H;
-    const canBuy = p.budget >= it.cost;
-
-    // Row divider
-    if (i > 0) {
-      ctx.strokeStyle = '#2a3a42'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(sr.x + 4, rowY - 4); ctx.lineTo(sr.x + sr.w - 4, rowY - 4); ctx.stroke();
-    }
-
-    // ── Icon with gray background ──
-    ctx.fillStyle = '#3a3a3a';
-    ctx.fillRect(sr.x + 5, rowY, 52, 44);
-    ctx.globalAlpha = canBuy ? 1 : 0.4;
-    it.draw(sr.x + 31, rowY + 24);
-    ctx.globalAlpha = 1;
-
-    // ── Name + cost + ammo count (or slider for launcher) ──
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 12px monospace'; ctx.fillStyle = canBuy ? '#fff' : '#555';
-    ctx.fillText(it.label, sr.x + 63, rowY + 15);
-    ctx.font = '10px monospace'; ctx.fillStyle = canBuy ? '#ccc' : '#555';
-    const bulletCost = AMMO_COST[it.ammoType] / AMMO_PACK[it.ammoType];
-    ctx.fillText(`${fmt(it.cost)} / ${fmt(bulletCost)}`, sr.x + 63, rowY + 28);
-    if (i === 1 || i === 2) {
-      // Frequency slider for launcher (i=1) and scud (i=2)
-      const sl   = i === 1 ? launcherSliderRect() : nukeSliderRect();
-      const freq = i === 1 ? launcherFireFreq : nukeFireFreq;
-      const key  = i === 1 ? 'launcher' : 'nuke';
-      ctx.fillStyle = '#2a2a2a'; ctx.fillRect(sl.x, sl.y, sl.w, sl.h);
-      ctx.fillStyle = '#fff'; ctx.fillRect(sl.x, sl.y, sl.w * freq, sl.h);
-      const tx = sl.x + sl.w * freq;
-      ctx.beginPath(); ctx.arc(tx, sl.y + sl.h / 2, 5, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff'; ctx.fill();
-    }
+  const p = players[0];
+  SHOP_COLS.forEach((types, col) => {
+    const sr = shopRect(col);
+    ctx.fillStyle = 'rgba(0,0,0,0.82)'; ctx.fillRect(sr.x, sr.y, sr.w, sr.h);
+    ctx.strokeStyle = '#37474f'; ctx.lineWidth = 1; ctx.strokeRect(sr.x, sr.y, sr.w, sr.h);
+    types.forEach((type, i) => {
+      const w = WEAPONS[type];
+      const rowY = sr.y + 16 + i * SHOP_ROW_H;
+      const canBuy = p.budget >= w.cost;
+      if (i > 0) {
+        ctx.strokeStyle = '#2a3a42'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(sr.x + 4, rowY - 4); ctx.lineTo(sr.x + sr.w - 4, rowY - 4); ctx.stroke();
+      }
+      ctx.fillStyle = '#3a3a3a'; ctx.fillRect(sr.x + 5, rowY, 52, 44);
+      ctx.globalAlpha = canBuy ? 1 : 0.4;
+      drawWeaponAt(type, sr.x + 31, rowY + 24, true);
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 12px monospace'; ctx.fillStyle = canBuy ? '#fff' : '#555';
+      ctx.fillText(w.label, sr.x + 63, rowY + 15);
+      ctx.font = '10px monospace'; ctx.fillStyle = canBuy ? '#ccc' : '#555';
+      ctx.fillText(`$${w.cost} / $${w.ammoCost / w.ammoPack}`, sr.x + 63, rowY + 28);
+      if (!w.defensive) {
+        const sl = sliderRect(type);
+        const deployed = players[0].platforms.some(pl => pl.type === type);
+        const freq = fireState[type].freq;
+        ctx.globalAlpha = deployed ? 1 : 0.25;
+        ctx.fillStyle = '#2a2a2a'; ctx.fillRect(sl.x, sl.y, sl.w, sl.h);
+        ctx.fillStyle = '#fff'; ctx.fillRect(sl.x, sl.y, sl.w * freq, sl.h);
+        ctx.beginPath(); ctx.arc(sl.x + sl.w * freq, sl.y + sl.h / 2, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff'; ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    });
   });
 }
 
 function drawDrag() {
   if (!drag) return;
   ctx.globalAlpha = 0.82;
-  if (drag.type === 'aa')       drawAAGunAt(drag.x, drag.y, players[0].color);
-  else if (drag.type === 'launcher') drawLauncherAt(drag.x, drag.y, players[0].color, true);
-  else                          drawNukeLauncherAt(drag.x, drag.y, players[0].color, true);
+  drawWeaponAt(drag.type, drag.x, drag.y, true);
   ctx.globalAlpha = 1;
   players[0].platforms.filter(pl => pl.type !== drag.type).forEach(pl => {
     ctx.save(); ctx.strokeStyle='rgba(255,255,100,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
-    ctx.strokeRect(pl.x - PLATFORM_W/2, GROUND_Y - 32, PLATFORM_W, 32);
+    ctx.strokeRect(pl.x - CONFIG.platformW/2, GROUND_Y - 32, CONFIG.platformW, 32);
     ctx.setLineDash([]); ctx.restore();
   });
 }
@@ -1061,24 +982,26 @@ function drawGameOver() {
   ctx.textAlign = 'center'; ctx.font = 'bold 48px monospace'; ctx.fillStyle = p.color;
   ctx.fillText(`${p.name} WINS`, W/2, H/2 - 16);
   ctx.font = '16px monospace'; ctx.fillStyle = '#999';
-  ctx.fillText('Tap or press SPACE to play again', W/2, H/2 + 30);
+  ctx.fillText('Press SPACE to play again', W/2, H/2 + 30);
 }
 
 function drawStartScreen() {
   ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.font = 'bold 52px monospace'; ctx.fillStyle = '#e0e0e0';
-  ctx.fillText('CITY SIEGE', W/2, H/2 - 30);
+  ctx.fillText('SHAHED', W/2, H/2 - 30);
+  ctx.font = '16px monospace'; ctx.fillStyle = '#666';
+  ctx.fillText('By Ruben Tous', W/2, H/2 + 5);
   ctx.font = '20px monospace'; ctx.fillStyle = '#888';
-  ctx.fillText('Click to start', W/2, H/2 + 30);
+  ctx.fillText('Click to start', W/2, H/2 + 35);
 }
 
 // ─── Loop ────────────────────────────────────────────────────────────────────
 function loop() {
   if (state !== 'start') update();
   drawSky(); drawTerrain();
-  drawPlatforms(players[0], true);
-  drawPlatforms(players[1], false);
+  drawPlatforms(players[0]);
+  drawPlatforms(players[1]);
   players.forEach(drawBgCity);
   players.forEach(drawCity);
   drawSmoke(); drawFires(); drawMissiles(); drawInterceptors(); drawExplosions();
@@ -1096,10 +1019,6 @@ function loop() {
 initGame();
 state = 'start';
 loop();
-
-window.addEventListener('resize', () => {
-  if (window.innerWidth > window.innerHeight) location.reload();
-});
 </script>
 </body>
 </html>
