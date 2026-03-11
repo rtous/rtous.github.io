@@ -225,28 +225,23 @@ function sliderRect(type) {
 
 // ─── Fullscreen ───────────────────────────────────────────────────────────────
 function requestFullscreen() {
-  const el = document.documentElement;
+  const el = canvas;
   try {
-    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    if      (el.requestFullscreen)       el.requestFullscreen().catch(() => {});
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.mozRequestFullScreen)    el.mozRequestFullScreen();
+    else if (el.msRequestFullscreen)     el.msRequestFullscreen();
+  } catch(e) {}
+  try {
+    if (screen.orientation && screen.orientation.lock)
+      screen.orientation.lock('landscape').catch(() => {});
   } catch(e) {}
 }
 
-window.addEventListener('resize', () => {
-  const s = state;
-  updateDimensions();
-  if (s === 'playing' || s === 'gameover') { initGame(); state = s; }
-});
-document.addEventListener('fullscreenchange', () => {
-  const s = state;
-  updateDimensions();
-  if (s === 'playing' || s === 'gameover') { initGame(); state = s; }
-});
-document.addEventListener('webkitfullscreenchange', () => {
-  const s = state;
-  updateDimensions();
-  if (s === 'playing' || s === 'gameover') { initGame(); state = s; }
-});
+// Only recalculate geometry on resize — never reset game state
+window.addEventListener('resize', updateDimensions);
+document.addEventListener('fullscreenchange', updateDimensions);
+document.addEventListener('webkitfullscreenchange', updateDimensions);
 
 // ─── Input ───────────────────────────────────────────────────────────────────
 let mousePos = { x: -1, y: -1 };
@@ -261,11 +256,19 @@ function canvasXY(clientX, clientY) {
   };
 }
 
+function playBtnRect() {
+  const bw = 180, bh = 48;
+  return { x: W / 2 - bw / 2, y: H / 2 + 22, w: bw, h: bh };
+}
+
 function handlePointerDown(mx, my) {
   if (state === 'start') {
-    audioCtx.resume();
-    requestFullscreen();
-    state = 'playing';
+    const btn = playBtnRect();
+    if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+      audioCtx.resume();
+      requestFullscreen();
+      state = 'playing';
+    }
     return;
   }
   if (state === 'gameover') { initGame(); return; }
@@ -888,13 +891,18 @@ function drawStartScreen() {
   ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.font = 'bold 52px monospace'; ctx.fillStyle = '#e0e0e0';
-  ctx.fillText('SHAHED', W / 2, H / 2 - 46);
+  ctx.fillText('SHAHED', W / 2, H / 2 - 40);
   ctx.font = '15px monospace'; ctx.fillStyle = '#666';
-  ctx.fillText('By Ruben Tous', W / 2, H / 2 - 18);
-  ctx.font = '20px monospace'; ctx.fillStyle = '#888';
-  ctx.fillText('Tap to start', W / 2, H / 2 + 14);
-  ctx.font = '12px monospace'; ctx.fillStyle = '#4dd0e1';
-  ctx.fillText('Hold your phone in landscape position', W / 2, H / 2 + 40);
+  ctx.fillText('By Ruben Tous', W / 2, H / 2 - 12);
+  // PLAY button
+  const btn = playBtnRect();
+  ctx.fillStyle = '#4dd0e1';
+  ctx.beginPath(); ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 8); ctx.fill();
+  ctx.font = 'bold 22px monospace'; ctx.fillStyle = '#000';
+  ctx.fillText('PLAY', W / 2, btn.y + btn.h * 0.67);
+  // Landscape notice
+  ctx.font = '11px monospace'; ctx.fillStyle = '#555';
+  ctx.fillText('Hold your phone in landscape position', W / 2, btn.y + btn.h + 22);
 }
 
 // ─── Loop ─────────────────────────────────────────────────────────────────────
