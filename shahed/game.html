@@ -440,6 +440,10 @@ function setFlash(t, c) { flashMsg = { text: t, color: c, ttl: 90 }; }
 // To modify AI behaviour, only edit this object.
 const ComputerPlayer = {
 
+  // Fraction of platforms to keep with cheap weapons, re-randomized periodically.
+  cheapUnitShare: 0.25,
+  cheapShareTimer: 0,   // counts down budget cycles; when 0, re-randomize cheapUnitShare
+
   _deployWeapon(type) {
     const ai = players[1];
     const empty = ai.platforms.filter(p => p.type === 'empty');
@@ -516,8 +520,10 @@ const ComputerPlayer = {
       .filter(t => WEAPONS[t].antiballistic)
       .sort((a, b) => (WEAPONS[b].shotsPerMinute ?? 0) - (WEAPONS[a].shotsPerMinute ?? 0));
 
+    const cheapSet = this._cheapSet();
     ai.platforms.forEach(p => {
       if (!WEAPONS[p.type]?.antiballistic) return;
+      if (cheapSet.has(p)) return; // keep this platform as a cheap unit
       const currentSPM = WEAPONS[p.type].shotsPerMinute ?? 0;
       const upgrade = abBySpeed.find(t =>
         (WEAPONS[t].shotsPerMinute ?? 0) > currentSPM &&
@@ -552,13 +558,26 @@ const ComputerPlayer = {
     }
   },
 
+  // Returns a Set of platforms that should be kept as cheap units and not upgraded.
+  // The cheapest cheapUnitShare fraction of active platforms (by weapon cost) are protected.
+  _cheapSet() {
+    const ai = players[1];
+    const active = ai.platforms.filter(p => p.type !== 'empty' && WEAPONS[p.type]);
+    const n = Math.round(active.length * this.cheapUnitShare);
+    if (n <= 0) return new Set();
+    const sorted = [...active].sort((a, b) => WEAPONS[a.type].cost - WEAPONS[b.type].cost);
+    return new Set(sorted.slice(0, n));
+  },
+
   // When all slots are full, find the platform with the biggest power gain and upgrade it.
   // Power metric: shotsPerMinute for anti-ballistic, damage for offensive.
   _tryUpgradeExisting() {
     const ai = players[1];
+    const cheapSet = this._cheapSet();
     let best = null;
     ai.platforms.forEach(p => {
       if (p.type === 'empty' || !WEAPONS[p.type]) return;
+      if (cheapSet.has(p)) return; // keep this platform as a cheap unit
       const isAB = !!WEAPONS[p.type].antiballistic;
       const currentPower = isAB ? (WEAPONS[p.type].shotsPerMinute ?? 0) : (WEAPONS[p.type].damage ?? 0);
       const candidates = WEAPON_TYPES.filter(t =>
@@ -589,6 +608,13 @@ const ComputerPlayer = {
 
   // Hook called by the main update loop each time a budget cycle completes.
   onBudgetCycle() {
+    // Periodically re-randomize the cheap-unit share (every 5–15 budget cycles).
+    if (this.cheapShareTimer <= 0) {
+      this.cheapUnitShare = Math.random() * 0.45; // 0%–45% of platforms kept cheap
+      this.cheapShareTimer = 5 + Math.floor(Math.random() * 11);
+    }
+    this.cheapShareTimer--;
+
     if (Math.random() < CONFIG.deployProbability) {
       if (CONFIG.smartDeployment) this._smartPolicy();
       else                        this._randomPolicy();
