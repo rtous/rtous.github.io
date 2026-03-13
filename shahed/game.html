@@ -288,6 +288,15 @@ canvas.addEventListener('mousedown', e => {
     }
   }
 
+  // Smoke level selector
+  for (let i = 0; i < SMOKE_LEVELS.length; i++) {
+    const r = smokeBtnRect(i);
+    if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+      smokeLevel = SMOKE_LEVELS[i];
+      return;
+    }
+  }
+
   // Shop columns: weapon drag to place
   for (let col = 0; col < SHOP_COLS.length; col++) {
     const sr = shopRect(col);
@@ -315,6 +324,10 @@ canvas.addEventListener('mousemove', e => {
     for (let col = 0; col < SHOP_COLS.length; col++) {
       const sr = shopRect(col);
       if (x >= sr.x && x <= sr.x + sr.w && y >= sr.y && y <= sr.y + sr.h) pointer = true;
+    }
+    for (let i = 0; i < SMOKE_LEVELS.length; i++) {
+      const r = smokeBtnRect(i);
+      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) pointer = true;
     }
   }
   canvas.style.cursor = pointer ? 'pointer' : drag ? 'grabbing' : 'default';
@@ -398,9 +411,15 @@ function initPlayers() { players = CITIES.map(makeCity); }
 // ─── Game state ───────────────────────────────────────────────────────────────
 let state, winner, levelStartTimer = 0;
 let missiles = [], interceptors = [], pendingAA = [], explosions = [], smoke = [], fires = [];
+let smokeLevel = 'high';
+const SMOKE_LEVELS = ['none', 'low', 'medium', 'high'];
+function smokeBtnRect(i) {
+  const x0 = 228, btnW = 36, gap = 3, y = 18, h = 16;
+  return { x: x0 + i * (btnW + gap), y, w: btnW, h };
+}
 let flashMsg = null;
 let currentIncome = CONFIG.dailyIncome;
-let dayTimer = 0, dayCount = 1, incomeTimer = 0;
+let dayTimer = 0, dayCount = 1, incomeTimer = 0, aiCycleTimer = 0;
 
 // Fire state map: type -> { freq }
 let fireState = {};
@@ -446,19 +465,36 @@ const ComputerPlayer = {
   },
 
   // Called every budget cycle. Spends up to deployRatio% of the AI budget
-  // buying randomly chosen affordable weapons until the allocation runs out
-  // or there are no empty platform slots left.
+  // Returns the probability [0,1] that the AI should deploy a defensive unit.
+  //   humanImpactRatio   high → humans are hitting us → lean defense
+  //   computerImpactRatio high → we are hitting them → offense is working, no urgency to add more
+  // With no data (< 5 shots total) returns 0.5 so the AI starts balanced.
+  // Clamped to [0.2, 0.8] so there is always some chance of picking either category.
+  _defenseProb() {
+    if (Metrics._fired[0] + Metrics._fired[1] < 5) return 0.5;
+    const gap = Metrics.humanImpactRatio - Metrics.computerImpactRatio; // [-1, 1]
+    return Math.max(0.2, Math.min(0.8, 0.5 + gap * 0.4));
+  },
+
+  // Buying randomly chosen weapons (within the preferred category) until the
+  // allocation runs out or there are no empty platform slots left.
   _randomPolicy() {
     const ai = players[1];
     let allocation = ai.budget * CONFIG.deployRatio / 100;
     let deployed   = 0;
 
+    const abTypes  = WEAPON_TYPES.filter(t => WEAPONS[t].antiballistic);
+    const offTypes = WEAPON_TYPES.filter(t => OFFENSIVE_TYPES.includes(t));
+
     while (allocation > 0 && deployed < CONFIG.maxUnitsDeployedPerCycle) {
       const empty = ai.platforms.filter(p => p.type === 'empty');
-      if (!empty.length) break;
-      const affordable = WEAPON_TYPES.filter(t => WEAPONS[t].cost <= allocation && WEAPONS[t].cost <= ai.budget);
-      if (!affordable.length) break;
-      const type = affordable[Math.random() * affordable.length | 0];
+      if (!empty.length) { this._tryUpgradeExisting(); break; }
+      const preferDefense = Math.random() < this._defenseProb();
+      const preferred = (preferDefense ? abTypes : offTypes).filter(t => WEAPONS[t].cost <= allocation && WEAPONS[t].cost <= ai.budget);
+      const fallback  = (preferDefense ? offTypes : abTypes).filter(t => WEAPONS[t].cost <= allocation && WEAPONS[t].cost <= ai.budget);
+      const candidates = preferred.length ? preferred : fallback;
+      if (!candidates.length) break;
+      const type = candidates[Math.random() * candidates.length | 0];
       const cost = WEAPONS[type].cost;
       ai.budget  -= cost;
       allocation -= cost;
@@ -469,8 +505,8 @@ const ComputerPlayer = {
 
   // Smart deployment policy:
   //   1. Upgrade any deployed anti-ballistic to the fastest affordable one.
-  //   2. Fill empty slots biased toward defense if humanImpactRatio is higher
-  //      than computerImpactRatio, offense otherwise.
+  //   2. Fill empty slots biased by metrics: prefer defense when humanImpactRatio
+  //      exceeds computerImpactRatio (more human shots landing than AI shots).
   _smartPolicy() {
     const ai = players[1];
     let allocation = ai.budget * CONFIG.deployRatio / 100;
@@ -496,14 +532,14 @@ const ComputerPlayer = {
     });
 
     // Pass 2 – deploy into empty slots, biased by impact ratios.
-    const preferDefense = Metrics.humanImpactRatio >= Metrics.computerImpactRatio;
     const abTypes  = WEAPON_TYPES.filter(t => WEAPONS[t].antiballistic);
     const offTypes = WEAPON_TYPES.filter(t => OFFENSIVE_TYPES.includes(t));
     let deployed = 0;
 
     while (allocation > 0 && deployed < CONFIG.maxUnitsDeployedPerCycle) {
       const empty = ai.platforms.filter(p => p.type === 'empty');
-      if (!empty.length) break;
+      if (!empty.length) { this._tryUpgradeExisting(); break; }
+      const preferDefense = Math.random() < this._defenseProb();
       const preferred  = (preferDefense ? abTypes  : offTypes).filter(t => WEAPONS[t].cost <= allocation && WEAPONS[t].cost <= ai.budget);
       const fallback   = (preferDefense ? offTypes : abTypes ).filter(t => WEAPONS[t].cost <= allocation && WEAPONS[t].cost <= ai.budget);
       const candidates = preferred.length ? preferred : fallback;
@@ -514,6 +550,41 @@ const ComputerPlayer = {
       this._deployWeapon(type);
       deployed++;
     }
+  },
+
+  // When all slots are full, find the platform with the biggest power gain and upgrade it.
+  // Power metric: shotsPerMinute for anti-ballistic, damage for offensive.
+  _tryUpgradeExisting() {
+    const ai = players[1];
+    let best = null;
+    ai.platforms.forEach(p => {
+      if (p.type === 'empty' || !WEAPONS[p.type]) return;
+      const isAB = !!WEAPONS[p.type].antiballistic;
+      const currentPower = isAB ? (WEAPONS[p.type].shotsPerMinute ?? 0) : (WEAPONS[p.type].damage ?? 0);
+      const candidates = WEAPON_TYPES.filter(t =>
+        !!WEAPONS[t].antiballistic === isAB &&
+        t !== p.type &&
+        ((isAB ? WEAPONS[t].shotsPerMinute : WEAPONS[t].damage) ?? 0) > currentPower &&
+        WEAPONS[t].cost <= ai.budget
+      );
+      if (!candidates.length) return;
+      const top = candidates.reduce((a, b) =>
+        ((isAB ? WEAPONS[b].shotsPerMinute : WEAPONS[b].damage) ?? 0) >
+        ((isAB ? WEAPONS[a].shotsPerMinute : WEAPONS[a].damage) ?? 0) ? b : a
+      );
+      const gain = ((isAB ? WEAPONS[top].shotsPerMinute : WEAPONS[top].damage) ?? 0) - currentPower;
+      if (!best || gain > best.gain) best = { p, top, gain };
+    });
+    if (!best) return false;
+    ai.budget -= WEAPONS[best.top].cost;
+    best.p.type = best.top;
+    if (!WEAPONS[best.top].antiballistic && WEAPONS[best.top].shotsPerMinute) {
+      const intervalMs = 60000 / WEAPONS[best.top].shotsPerMinute;
+      const now = performance.now();
+      ai.platforms.filter(p => p.type === best.top)
+        .forEach((p, i, arr) => { p.nextFireTime = now + intervalMs * (i + 1) / arr.length; });
+    }
+    return true;
   },
 
   // Hook called by the main update loop each time a budget cycle completes.
@@ -594,7 +665,7 @@ function initGame() {
   initPlayers();
   missiles = []; interceptors = []; pendingAA = []; explosions = []; smoke = []; fires = [];
   flashMsg = null; drag = null; currentIncome = CONFIG.dailyIncome;
-  dayTimer = 0; dayCount = 1; incomeTimer = 0;
+  dayTimer = 0; dayCount = 1; incomeTimer = 0; aiCycleTimer = 0;
   Metrics.reset();
   initFireState();
 
@@ -716,6 +787,11 @@ function update() {
     players[1].budget += currentIncome;
     setFlash(`+${fmt(currentIncome)}`, '#ffb300');
     currentIncome = Math.round(currentIncome * (CONFIG.incomeGrowth ?? 1.1));
+  }
+
+  aiCycleTimer++;
+  if (aiCycleTimer >= CONFIG.incomeInterval / 4) {
+    aiCycleTimer = 0;
     ComputerPlayer.onBudgetCycle();
   }
 
@@ -987,6 +1063,10 @@ function drawFires() {
 }
 
 function spawnSmoke(x, y, count) {
+  if (smokeLevel === 'none') return;
+  const mult = smokeLevel === 'low' ? 0.25 : smokeLevel === 'medium' ? 0.5 : 1;
+  count = Math.round(count * mult);
+  if (count <= 0) return;
   for (let i = 0; i < count * 2; i++) {
     smoke.push({
       x: x + (Math.random() - 0.5) * 20,
@@ -1141,9 +1221,25 @@ function drawHUD() {
     ctx.fillText(`${p.name}  ${fmtPop(p.hp)} population`, i === 0 ? barX : barX + bw, barY + bh + 13);
   });
 
+  // Smoke selector
+  ctx.font = '10px monospace'; ctx.fillStyle = '#777'; ctx.textAlign = 'left';
+  ctx.fillText('SMOKE (too high may make the game slow)', 228, 14);
+  SMOKE_LEVELS.forEach((lvl, i) => {
+    const r = smokeBtnRect(i);
+    const active = smokeLevel === lvl;
+    ctx.fillStyle = active ? '#aaa' : '#333';
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeStyle = active ? '#fff' : '#555'; ctx.lineWidth = 1;
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.font = 'bold 9px monospace';
+    ctx.fillStyle = active ? '#000' : '#888';
+    ctx.textAlign = 'center';
+    ctx.fillText(lvl.toUpperCase(), r.x + r.w / 2, r.y + 11);
+  });
+
   // Budget
   ctx.textAlign = 'left'; ctx.font = 'bold 22px monospace';
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = players[0].budget <= 0 ? '#ff1744' : '#fff';
   ctx.fillText(fmt(players[0].budget), W/2 - 40, 30);
 
   if (flashMsg) {
